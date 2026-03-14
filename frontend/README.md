@@ -1,73 +1,107 @@
-# React + TypeScript + Vite
+# Agile — Onboarding Workflow Engine (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A clean internal-tool frontend for the Agile onboarding workflow engine. Built with React 19, Vite, TypeScript, Tailwind CSS, TanStack Query, and React Router v6.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+| Concern | Choice |
+|---|---|
+| Framework | React 19 + TypeScript (strict) |
+| Build | Vite 8 |
+| Routing | React Router v6 |
+| Server state | TanStack Query |
+| Styling | Tailwind CSS v3 |
+| Icons | Lucide React |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+frontend/src/
+├── api/
+│   ├── client.ts          # Base fetch wrapper with error handling
+│   ├── customers.ts       # Customer API helpers
+│   ├── projects.ts        # Project API helpers
+│   ├── tasks.ts           # Task API helpers
+│   └── seed.ts            # Seed endpoint helper
+├── types/
+│   └── index.ts           # TypeScript types matching backend schemas
+├── components/
+│   ├── layout/
+│   │   ├── AppLayout.tsx  # Root layout with sidebar
+│   │   ├── Sidebar.tsx    # Navigation sidebar
+│   │   └── Topbar.tsx     # Page header bar
+│   └── ui/
+│       ├── StatusBadge.tsx    # Badge variants for status/stage/type
+│       ├── StatCard.tsx       # Metric stat card
+│       ├── StageProgress.tsx  # Stage stepper component
+│       ├── EventFeed.tsx      # Workflow event timeline
+│       ├── Modal.tsx          # Accessible dialog modal
+│       ├── CustomerForm.tsx   # Create customer form
+│       ├── ProjectForm.tsx    # Create project form
+│       ├── EmptyState.tsx     # Empty state component
+│       ├── LoadingSpinner.tsx # Spinner + page loading
+│       └── ErrorAlert.tsx     # Error message component
+└── pages/
+    ├── Dashboard.tsx      # Overview with stats + recent projects
+    ├── Customers.tsx      # Customer list + create
+    ├── Projects.tsx       # Project table + create
+    └── ProjectDetail.tsx  # Full project view with tasks + events
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Local Setup
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Start the backend
+
+```bash
+cd backend
+source venv/bin/activate
+uvicorn app.main:app --reload
+# Backend runs at http://127.0.0.1:8000
+```
+
+### 2. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+# Frontend runs at http://localhost:5173
+```
+
+### 3. Seed sample data
+
+Once both are running, click **Seed Database** on the dashboard, or run:
+
+```bash
+curl -X POST http://127.0.0.1:8000/seed
+```
+
+---
+
+## Pages
+
+| Route | Description |
+|---|---|
+| `/dashboard` | Overview stats, recent projects, quick links |
+| `/customers` | Customer list + create customer modal |
+| `/projects` | Project table + create project modal |
+| `/projects/:id` | Project detail — tasks, stage progress, event feed |
+
+---
+
+## API Configuration
+
+The frontend reads `VITE_API_URL` from `.env.local` (defaults to `http://127.0.0.1:8000`).
+
+To point to a different backend:
+
+```bash
+# frontend/.env.local
+VITE_API_URL=https://your-api.example.com
 ```

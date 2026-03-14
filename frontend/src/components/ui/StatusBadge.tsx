@@ -1,0 +1,74 @@
+import type { ProjectStatus, TaskStatus, CustomerType, OnboardingStage } from '../../types';
+
+type BadgeVariant = 'green' | 'yellow' | 'red' | 'blue' | 'slate' | 'orange' | 'purple' | 'indigo';
+
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
+  green: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+  yellow: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+  red: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+  blue: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  slate: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+  orange: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200',
+  purple: 'bg-purple-50 text-purple-700 ring-1 ring-purple-200',
+  indigo: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200',
+};
+
+interface BadgeProps {
+  label: string;
+  variant: BadgeVariant;
+  dot?: boolean;
+}
+
+export function Badge({ label, variant, dot = false }: BadgeProps) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${VARIANT_CLASSES[variant]}`}
+    >
+      {dot && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+      {label}
+    </span>
+  );
+}
+
+export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {
+  const map: Record<ProjectStatus, { label: string; variant: BadgeVariant }> = {
+    active: { label: 'Active', variant: 'blue' },
+    at_risk: { label: 'At Risk', variant: 'red' },
+    blocked: { label: 'Blocked', variant: 'orange' },
+    completed: { label: 'Completed', variant: 'green' },
+  };
+  const { label, variant } = map[status];
+  return <Badge label={label} variant={variant} dot />;
+}
+
+export function TaskStatusBadge({ status }: { status: TaskStatus }) {
+  const map: Record<TaskStatus, { label: string; variant: BadgeVariant }> = {
+    not_started: { label: 'Not Started', variant: 'slate' },
+    in_progress: { label: 'In Progress', variant: 'blue' },
+    completed: { label: 'Completed', variant: 'green' },
+    overdue: { label: 'Overdue', variant: 'red' },
+    blocked: { label: 'Blocked', variant: 'orange' },
+  };
+  const { label, variant } = map[status];
+  return <Badge label={label} variant={variant} dot />;
+}
+
+export function CustomerTypeBadge({ type }: { type: CustomerType }) {
+  return (
+    <Badge
+      label={type === 'enterprise' ? 'Enterprise' : 'SMB'}
+      variant={type === 'enterprise' ? 'purple' : 'indigo'}
+    />
+  );
+}
+
+export function StageBadge({ stage }: { stage: OnboardingStage }) {
+  const map: Record<OnboardingStage, { label: string; variant: BadgeVariant }> = {
+    kickoff: { label: 'Kickoff', variant: 'indigo' },
+    setup: { label: 'Setup', variant: 'blue' },
+    training: { label: 'Training', variant: 'purple' },
+    go_live: { label: 'Go-Live', variant: 'green' },
+  };
+  const { label, variant } = map[stage];
+  return <Badge label={label} variant={variant} />;
+}
