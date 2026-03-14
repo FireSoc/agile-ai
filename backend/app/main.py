@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import customers, projects, seed, tasks
+from app.api.routes import customers, projects, seed, simulations, tasks
 from app.core.config import settings
 from app.db.session import init_db
 
@@ -37,9 +37,15 @@ def create_app() -> FastAPI:
     app.include_router(customers.router)
     app.include_router(projects.router)
     app.include_router(tasks.router)
+    app.include_router(simulations.router)
     app.include_router(seed.router)
 
     return app
 
 
 app = create_app()
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

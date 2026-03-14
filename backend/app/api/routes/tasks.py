@@ -4,10 +4,38 @@ from sqlalchemy.orm import Session, selectinload
 from app.api.deps import get_db
 from app.models.onboarding_project import OnboardingProject
 from app.models.task import Task
-from app.schemas.task import TaskCompleteResponse, TaskRead
-from app.services.task_service import complete_task
+from app.schemas.task import TaskCompleteResponse, TaskCreate, TaskCreateResponse, TaskRead
+from app.services.task_service import complete_task, create_task
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
+
+
+@router.post("", response_model=TaskCreateResponse, status_code=status.HTTP_201_CREATED)
+def create_new_task(
+    payload: TaskCreate, db: Session = Depends(get_db)
+) -> TaskCreateResponse:
+    """
+    Create an ad-hoc task on an existing project.
+
+    The task is attached to the project's current or any earlier stage.
+    Future-stage tasks are generated automatically by the workflow engine
+    when the project advances; this endpoint is for manual additions only.
+    """
+    try:
+        task = create_task(db, payload)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+
+    return TaskCreateResponse(
+        task=TaskRead.model_validate(task),
+        message=(
+            f"Task '{task.title}' created successfully for stage "
+            f"'{task.stage.value}' on project {task.project_id}."
+        ),
+    )
 
 
 @router.post("/{task_id}/complete", response_model=TaskCompleteResponse)
