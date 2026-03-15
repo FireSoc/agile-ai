@@ -55,7 +55,7 @@ def simulate_risk(payload: SimulationRequest) -> SimulationResponse:
     The engine runs the full deterministic risk analysis and returns:
     - Per-stage results with projected durations and gate blockers.
     - Risk signals (overdue threshold, stalled, multi-overdue).
-    - **v2:** Per-task assessments: risk_band (Low/Guarded/Elevated/Critical),
+    - **v2:** Per-task assessments: risk_band (Low/Moderate/Elevated/Critical),
       risk score, urgency score, criticality score, top_reasons (explainability),
       recommended_fallback, and action_priority_score.
     - **v2:** Ephemeral virtual inbox preview showing simulated outbound emails,

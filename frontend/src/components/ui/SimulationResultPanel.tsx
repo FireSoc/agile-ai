@@ -14,12 +14,12 @@ const BAND_CONFIG: Record<
     badge: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
     icon: <ShieldCheck className="h-4 w-4 text-emerald-600" aria-hidden />,
   },
-  Guarded: {
-    border: 'border-blue-200',
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    badge: 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
-    icon: <Info className="h-4 w-4 text-blue-600" aria-hidden />,
+  Moderate: {
+    border: 'border-yellow-200',
+    bg: 'bg-yellow-50',
+    text: 'text-yellow-700',
+    badge: 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200',
+    icon: <Info className="h-4 w-4 text-yellow-600" aria-hidden />,
   },
   Elevated: {
     border: 'border-amber-200',

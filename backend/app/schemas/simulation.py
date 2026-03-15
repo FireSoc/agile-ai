@@ -129,7 +129,7 @@ class TaskAssessment(BaseModel):
 
     # Composite scores
     risk_score: float = Field(..., description="Weighted composite risk score (0-100).")
-    risk_band: str = Field(..., description="Low | Guarded | Elevated | Critical")
+    risk_band: str = Field(..., description="Low | Moderate | Elevated | Critical")
     urgency_score: float = Field(..., description="Score based on how soon the deadline is.")
     criticality_score: float = Field(..., description="Score based on business impact (from criticality 1-4).")
     action_priority_score: float = Field(

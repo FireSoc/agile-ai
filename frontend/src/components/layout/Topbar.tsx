@@ -3,12 +3,12 @@ import type { ReactNode } from 'react';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
-  '/at-risk': 'At-Risk Accounts',
   '/projects': 'Projects',
+  '/simulator': 'Decision Sandbox',
+  '/ops-inbox': 'Ops Inbox',
+  '/customers': 'Customers',
   '/deals/import': 'Import deal',
   '/playbooks': 'Playbooks',
-  '/simulator': 'Decision Sandbox',
-  '/customers': 'Customers',
 };
 
 interface TopbarProps {

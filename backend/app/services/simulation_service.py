@@ -134,7 +134,7 @@ def _risk_band(score: float) -> str:
     if score >= 60:
         return "Elevated"
     if score >= 40:
-        return "Guarded"
+        return "Moderate"
     return "Low"
 
 
@@ -607,7 +607,7 @@ def _build_summary(
         parts.append(
             f"Task risk breakdown — Critical: {critical_count}, "
             f"Elevated: {elevated_count}, "
-            f"Guarded: {sum(1 for a in task_assessments if a.risk_band == 'Guarded')}, "
+            f"Moderate: {sum(1 for a in task_assessments if a.risk_band == 'Moderate')}, "
             f"Low: {sum(1 for a in task_assessments if a.risk_band == 'Low')}."
         )
 

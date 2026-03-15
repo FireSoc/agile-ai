@@ -186,10 +186,10 @@ export function Dashboard() {
                       </p>
                     </div>
                     <Link
-                      to="/at-risk"
+                      to="/ops-inbox"
                       className="mt-1 text-xs text-red-600 hover:underline flex items-center gap-1"
                     >
-                      Review at-risk accounts <ArrowRight className="h-3 w-3" />
+                      Review in Ops Inbox <ArrowRight className="h-3 w-3" />
                     </Link>
                   </div>
                 )}

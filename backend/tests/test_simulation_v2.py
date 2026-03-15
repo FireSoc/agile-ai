@@ -192,9 +192,9 @@ class TestRiskBand:
         assert _risk_band(0) == "Low"
         assert _risk_band(39) == "Low"
 
-    def test_guarded(self):
-        assert _risk_band(40) == "Guarded"
-        assert _risk_band(59) == "Guarded"
+    def test_moderate(self):
+        assert _risk_band(40) == "Moderate"
+        assert _risk_band(59) == "Moderate"
 
     def test_elevated(self):
         assert _risk_band(60) == "Elevated"
@@ -214,7 +214,7 @@ class TestScoreTask:
         t = _task(title="Integration Setup", is_customer_required=False, due_offset_days=5)
         a = score_task(t, BASELINE_ASSUMPTIONS)
         assert a.task_title == "Integration Setup"
-        assert a.risk_band in ("Low", "Guarded", "Elevated", "Critical")
+        assert a.risk_band in ("Low", "Moderate", "Elevated", "Critical")
         assert 0 <= a.risk_score <= 100
         assert len(a.top_reasons) <= 3
         assert len(a.recommended_fallback) > 0

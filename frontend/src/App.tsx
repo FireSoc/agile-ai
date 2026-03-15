@@ -6,11 +6,11 @@ import { Customers } from './pages/Customers';
 import { Projects } from './pages/Projects';
 import { ProjectsLanding } from './pages/ProjectsLanding';
 import { ProjectDetail } from './pages/ProjectDetail';
-import { AtRiskAccounts } from './pages/AtRiskAccounts';
 import { PlaybookInspector } from './pages/PlaybookInspector';
 import { CustomerPortalProject } from './pages/CustomerPortalProject';
 import { ImportDeal } from './pages/ImportDeal';
 import { Simulator } from './pages/Simulator';
+import { OpsInbox } from './pages/OpsInbox';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +29,8 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/at-risk" element={<AtRiskAccounts />} />
+            <Route path="/at-risk" element={<Navigate to="/ops-inbox" replace />} />
+            <Route path="/ops-inbox" element={<OpsInbox />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/projects" element={<ProjectsLanding />} />
             <Route path="/projects/list" element={<Projects />} />
