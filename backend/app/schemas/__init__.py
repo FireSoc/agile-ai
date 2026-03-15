@@ -6,6 +6,5 @@ from app.schemas.project import (  # noqa: F401
     ProjectRead,
     RiskCheckResponse,
 )
-from app.schemas.seed import SeedResponse  # noqa: F401
 from app.schemas.task import TaskCompleteResponse, TaskRead  # noqa: F401
 from app.schemas.workflow_event import WorkflowEventRead  # noqa: F401

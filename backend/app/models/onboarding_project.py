@@ -42,6 +42,3 @@ class OnboardingProject(Base):
     events: Mapped[list["WorkflowEvent"]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
-    calendar_events: Mapped[list["CalendarEvent"]] = relationship(  # noqa: F821
-        back_populates="project"
-    )

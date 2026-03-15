@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   FolderKanban,
   Play,
@@ -8,11 +7,9 @@ import {
   CheckCircle2,
   Users,
   ArrowRight,
-  Database,
 } from 'lucide-react';
 import { projectsApi } from '../api/projects';
 import { customersApi } from '../api/customers';
-import { seedApi } from '../api/seed';
 import { StatCard } from '../components/ui/StatCard';
 import { ProjectStatusBadge, StageBadge } from '../components/ui/StatusBadge';
 import { PageLoading } from '../components/ui/LoadingSpinner';
@@ -20,9 +17,6 @@ import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { Topbar } from '../components/layout/Topbar';
 
 export function Dashboard() {
-  const queryClient = useQueryClient();
-  const [seedMsg, setSeedMsg] = useState<string | null>(null);
-
   const { data: projects, isPending: loadingProjects, isError: errorProjects, refetch: refetchProjects } = useQuery({
     queryKey: ['projects'],
     queryFn: projectsApi.list,
@@ -31,16 +25,6 @@ export function Dashboard() {
   const { data: customers, isPending: loadingCustomers } = useQuery({
     queryKey: ['customers'],
     queryFn: customersApi.list,
-  });
-
-  const seedMutation = useMutation({
-    mutationFn: seedApi.seed,
-    onSuccess: (data) => {
-      setSeedMsg(data.message ?? 'Database seeded.');
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      setTimeout(() => setSeedMsg(null), 4000);
-    },
   });
 
   if (loadingProjects || loadingCustomers) return <PageLoading />;
@@ -57,26 +41,12 @@ export function Dashboard() {
 
   return (
     <div>
-      <Topbar
-        action={
-          <button
-            type="button"
-            className="btn-secondary text-xs"
-            onClick={() => seedMutation.mutate()}
-            disabled={seedMutation.isPending}
-          >
-            <Database className="h-3.5 w-3.5" />
-            {seedMutation.isPending ? 'Seeding…' : 'Seed Database'}
-          </button>
-        }
-      />
+      <Topbar />
 
       <div className="px-6 py-6 space-y-6">
-        {seedMsg && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-medium">
-            {seedMsg}
-          </div>
-        )}
+        <p className="text-sm text-slate-600">
+          Onboarding at a glance: active projects, at-risk accounts, and quick access to customers and projects.
+        </p>
 
         {errorProjects && (
           <ErrorAlert
@@ -87,10 +57,10 @@ export function Dashboard() {
 
         {/* Stats */}
         <section aria-labelledby="stats-heading">
-          <h2 id="stats-heading" className="sr-only">Overview stats</h2>
+          <h2 id="stats-heading" className="sr-only">Onboarding overview</h2>
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
             <StatCard
-              label="Total Projects"
+              label="Onboarding Projects"
               value={totalProjects}
               icon={<FolderKanban className="h-5 w-5 text-brand-600" />}
               iconBg="bg-brand-50"
@@ -128,7 +98,7 @@ export function Dashboard() {
             <div className="card">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <h2 id="projects-heading" className="text-sm font-semibold text-slate-800">
-                  Recent Projects
+                  Recent Onboarding Projects
                 </h2>
                 <Link to="/projects" className="text-xs text-brand-600 hover:underline flex items-center gap-1">
                   View all <ArrowRight className="h-3 w-3" />
@@ -136,18 +106,10 @@ export function Dashboard() {
               </div>
               {recentProjects.length === 0 ? (
                 <div className="px-5 py-8 text-center text-sm text-slate-500">
-                  No projects yet.{' '}
+                  No onboarding projects yet.{' '}
                   <Link to="/projects" className="text-brand-600 hover:underline">
                     Create one
-                  </Link>{' '}
-                  or{' '}
-                  <button
-                    type="button"
-                    className="text-brand-600 hover:underline"
-                    onClick={() => seedMutation.mutate()}
-                  >
-                    seed the database
-                  </button>
+                  </Link>
                   .
                 </div>
               ) : (
@@ -190,6 +152,7 @@ export function Dashboard() {
                 <h2 id="quicklinks-heading" className="text-sm font-semibold text-slate-800">
                   Quick Actions
                 </h2>
+                <p className="text-xs text-slate-500 mt-0.5">Customers → projects → tasks & risk</p>
               </div>
               <div className="p-5 space-y-2">
                 <Link
@@ -198,7 +161,7 @@ export function Dashboard() {
                 >
                   <div className="flex items-center gap-2.5">
                     <Users className="h-4 w-4 text-slate-400 group-hover:text-brand-600" />
-                    <span className="font-medium text-slate-700">Manage Customers</span>
+                    <span className="font-medium text-slate-700">Customers</span>
                   </div>
                   <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
                 </Link>
@@ -208,7 +171,7 @@ export function Dashboard() {
                 >
                   <div className="flex items-center gap-2.5">
                     <FolderKanban className="h-4 w-4 text-slate-400 group-hover:text-brand-600" />
-                    <span className="font-medium text-slate-700">View All Projects</span>
+                    <span className="font-medium text-slate-700">Onboarding Projects</span>
                   </div>
                   <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
                 </Link>

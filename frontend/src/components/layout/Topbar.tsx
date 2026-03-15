@@ -5,9 +5,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/customers': 'Customers',
   '/projects': 'Projects',
-  '/calendar': 'Calendar',
-  '/simulator': 'Decision Sandbox',
-  '/timeline': 'Deadline Timeline',
 };
 
 interface TopbarProps {
@@ -19,7 +16,7 @@ export function Topbar({ action }: TopbarProps) {
 
   const title =
     PAGE_TITLES[pathname] ??
-    (pathname.startsWith('/projects/') ? 'Project Detail' : 'Agile');
+    (pathname.startsWith('/projects/') ? 'Projects' : 'Agile');
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">

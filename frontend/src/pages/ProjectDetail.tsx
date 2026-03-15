@@ -232,17 +232,19 @@ export function ProjectDetail() {
 
   return (
     <div>
-      <Topbar />
+      <Topbar
+        action={
+          <Link
+            to="/projects/list"
+            className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-brand-600 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            All onboarding projects
+          </Link>
+        }
+      />
 
       <div className="px-6 py-6 space-y-6">
-        <Link
-          to="/projects/list"
-          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-brand-600 transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Full project listings
-        </Link>
-
         <div className="flex flex-wrap items-center gap-4">
           <div>
             <label htmlFor="project-detail-company" className="label inline-block mb-0 mr-2">

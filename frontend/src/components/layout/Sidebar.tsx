@@ -1,24 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Users,
-  FolderKanban,
-  CalendarDays,
-  Zap,
-  FlaskConical,
-  CalendarClock,
-} from 'lucide-react';
+import { LayoutDashboard, Users, FolderKanban, Zap } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/customers', icon: Users, label: 'Customers' },
   { to: '/projects', icon: FolderKanban, label: 'Projects' },
-  { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
-];
-
-const SANDBOX_ITEMS = [
-  { to: '/simulator', icon: FlaskConical, label: 'Simulator' },
-  { to: '/timeline', icon: CalendarClock, label: 'Timeline' },
 ];
 
 export function Sidebar() {
@@ -55,36 +41,11 @@ export function Sidebar() {
             </NavLink>
           ))}
         </div>
-
-        {/* Decision Sandbox section */}
-        <div>
-          <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-slate-500">
-            Decision Sandbox
-          </p>
-          <div className="space-y-0.5">
-            {SANDBOX_ITEMS.map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-brand-600 text-white'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                  }`
-                }
-              >
-                <Icon className="h-4 w-4 flex-shrink-0" />
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
       </nav>
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-slate-800">
-        <p className="text-xs text-slate-500">Internal Ops Tool</p>
+        <p className="text-xs text-slate-500">Onboarding Ops Co-pilot</p>
       </div>
     </aside>
   );

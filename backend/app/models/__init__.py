@@ -1,5 +1,4 @@
 # Import all models so SQLAlchemy Base.metadata is fully populated.
-from app.models.calendar_event import CalendarEvent  # noqa: F401
 from app.models.customer import Customer  # noqa: F401
 from app.models.enums import (  # noqa: F401
     CustomerType,

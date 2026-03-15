@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import calendar, customers, projects, seed, simulations, tasks
+from app.api.routes import customers, projects, tasks
 from app.core.config import settings
 from app.db.session import init_db
 
@@ -19,9 +19,9 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version=settings.app_version,
         description=(
-            "Agile — Onboarding Workflow Engine. "
-            "Automates customer onboarding task creation, stage progression, "
-            "reminders, and risk flagging."
+            "Agile — Onboarding operations co-pilot for post-sale teams. "
+            "Automates project setup from deals, adapts workflows by customer type, "
+            "surfaces risk early, and gives internal teams and customers visibility from kickoff to go-live."
         ),
         lifespan=lifespan,
     )
@@ -34,12 +34,9 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    app.include_router(calendar.router)
     app.include_router(customers.router)
     app.include_router(projects.router)
     app.include_router(tasks.router)
-    app.include_router(simulations.router)
-    app.include_router(seed.router)
 
     return app
 
