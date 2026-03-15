@@ -162,7 +162,7 @@ export function Dashboard() {
                       >
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-slate-800 truncate group-hover:text-brand-700 transition-colors">
-                            {customer?.company_name ?? `Project #${project.id}`}
+                            {project.name ?? customer?.company_name ?? `Project #${project.id}`}
                           </p>
                           <p className="text-xs text-slate-500 mt-0.5">
                             {customer?.customer_type.toUpperCase()} · {customer?.industry}

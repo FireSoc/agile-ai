@@ -9,6 +9,7 @@ from app.schemas.workflow_event import WorkflowEventRead
 
 class ProjectCreate(BaseModel):
     customer_id: int
+    name: str | None = None
     notes: str | None = None
 
 
@@ -17,6 +18,7 @@ class ProjectRead(BaseModel):
 
     id: int
     customer_id: int
+    name: str | None
     current_stage: OnboardingStage
     status: ProjectStatus
     risk_flag: bool

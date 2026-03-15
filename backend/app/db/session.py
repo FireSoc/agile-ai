@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
@@ -18,3 +18,12 @@ def init_db() -> None:
     import app.models  # noqa: F401  triggers __init__ side-effects
 
     Base.metadata.create_all(bind=engine)
+
+    # One-time migration: add name column to onboarding_projects if missing (e.g. existing DBs)
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("SELECT 1 FROM pragma_table_info('onboarding_projects') WHERE name='name'")
+        )
+        if result.scalar() is None:
+            conn.execute(text("ALTER TABLE onboarding_projects ADD COLUMN name VARCHAR(255)"))
+            conn.commit()

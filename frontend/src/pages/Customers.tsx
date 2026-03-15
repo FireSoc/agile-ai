@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Plus, Building2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { customersApi } from '../api/customers';
+import { projectsApi } from '../api/projects';
 import { CustomerTypeBadge } from '../components/ui/StatusBadge';
 import { CustomerForm } from '../components/ui/CustomerForm';
 import { Modal } from '../components/ui/Modal';
@@ -18,6 +19,19 @@ export function Customers() {
     queryKey: ['customers'],
     queryFn: customersApi.list,
   });
+
+  const { data: projects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: projectsApi.list,
+  });
+
+  function getMostRecentProjectIdForCustomer(customerId: number): number | null {
+    if (!projects?.length) return null;
+    const forCustomer = projects
+      .filter((p) => p.customer_id === customerId)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return forCustomer[0]?.id ?? null;
+  }
 
   return (
     <div>
@@ -117,12 +131,24 @@ export function Customers() {
                       })}
                     </td>
                     <td className="px-5 py-3.5 text-right">
-                      <Link
-                        to={`/projects?customer=${customer.id}`}
-                        className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline"
-                      >
-                        View projects <ArrowRight className="h-3 w-3" />
-                      </Link>
+                      {(() => {
+                        const projectId = getMostRecentProjectIdForCustomer(customer.id);
+                        return projectId != null ? (
+                          <Link
+                            to={`/projects/${projectId}`}
+                            className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline"
+                          >
+                            View projects <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        ) : (
+                          <Link
+                            to={`/projects/list?company=${customer.id}`}
+                            className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline"
+                          >
+                            View projects <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}

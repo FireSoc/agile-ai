@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
@@ -117,6 +117,7 @@ function TaskRow({
 
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const projectId = Number(id);
   const queryClient = useQueryClient();
 
@@ -129,12 +130,35 @@ export function ProjectDetail() {
     enabled: !isNaN(projectId),
   });
 
+  const { data: projects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: projectsApi.list,
+  });
+
   const { data: customers } = useQuery({
     queryKey: ['customers'],
     queryFn: customersApi.list,
   });
 
   const customer = customers?.find((c) => c.id === project?.customer_id);
+
+  const projectsForCompany = project
+    ? (projects ?? []).filter((p) => p.customer_id === project.customer_id).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+    : [];
+
+  function handleCompanyChange(customerId: number) {
+    const thatCompanyProjects = (projects ?? [])
+      .filter((p) => p.customer_id === customerId)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const targetId = thatCompanyProjects[0]?.id;
+    if (targetId != null) navigate(`/projects/${targetId}`);
+  }
+
+  function handleProjectChange(projectId: number) {
+    navigate(`/projects/${projectId}`);
+  }
 
   function showMsg(text: string, type: 'success' | 'info' = 'success') {
     setActionMsg({ text, type });
@@ -204,19 +228,60 @@ export function ProjectDetail() {
   const completedTaskCount = tasks.filter((t) => t.status === 'completed').length;
   const overdueTaskCount = tasks.filter((t) => t.status === 'overdue').length;
 
+  const customerMap = new Map(customers?.map((c) => [c.id, c]) ?? []);
+
   return (
     <div>
       <Topbar />
 
       <div className="px-6 py-6 space-y-6">
-        {/* Back link */}
         <Link
-          to="/projects"
+          to="/projects/list"
           className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-brand-600 transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
-          All Projects
+          Full project listings
         </Link>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div>
+            <label htmlFor="project-detail-company" className="label inline-block mb-0 mr-2">
+              Company
+            </label>
+            <select
+              id="project-detail-company"
+              className="select w-48"
+              value={project.customer_id}
+              onChange={(e) => handleCompanyChange(Number(e.target.value))}
+              aria-label="Switch company"
+            >
+              {(customers ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.company_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="project-detail-project" className="label inline-block mb-0 mr-2">
+              Project
+            </label>
+            <select
+              id="project-detail-project"
+              className="select w-56"
+              value={project.id}
+              onChange={(e) => handleProjectChange(Number(e.target.value))}
+              aria-label="Switch project"
+              disabled={projectsForCompany.length === 0}
+            >
+              {projectsForCompany.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? `Customer #${p.customer_id}`} — #${p.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {/* Action feedback banner */}
         {actionMsg && (
@@ -241,13 +306,15 @@ export function ProjectDetail() {
               <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
                   <h2 id="project-summary" className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                    {customer?.company_name ?? `Project #${project.id}`}
+                    {project.name ?? customer?.company_name ?? `Project #${project.id}`}
                     {project.risk_flag && (
                       <AlertTriangle className="h-4 w-4 text-red-500" aria-label="At risk" />
                     )}
                   </h2>
                   <p className="text-sm text-slate-500 mt-0.5">
-                    Onboarding Project #{project.id}
+                    {project.name
+                      ? `${customer?.company_name ?? 'Customer'} · #${project.id}`
+                      : `Onboarding Project #${project.id}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">

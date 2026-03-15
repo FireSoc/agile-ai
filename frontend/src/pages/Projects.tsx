@@ -14,8 +14,9 @@ import { Topbar } from '../components/layout/Topbar';
 
 export function Projects() {
   const [isModalOpen, setModalOpen] = useState(false);
-  const [searchParams] = useSearchParams();
-  const customerFilter = searchParams.get('customer');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const companyId = searchParams.get('company');
+  const projectId = searchParams.get('project');
 
   const { data: projects, isPending: loadingProjects, isError, refetch } = useQuery({
     queryKey: ['projects'],
@@ -29,9 +30,31 @@ export function Projects() {
 
   const customerMap = new Map(customers?.map((c) => [c.id, c]) ?? []);
 
-  const filteredProjects = customerFilter
-    ? projects?.filter((p) => p.customer_id === Number(customerFilter))
+  const filteredByCompany = companyId
+    ? projects?.filter((p) => p.customer_id === Number(companyId))
     : projects;
+
+  const filteredProjects =
+    projectId && filteredByCompany
+      ? filteredByCompany.filter((p) => p.id === Number(projectId))
+      : filteredByCompany;
+
+  const projectsForProjectDropdown = filteredByCompany ?? [];
+
+  function setCompany(value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set('company', value);
+    else next.delete('company');
+    next.delete('project');
+    setSearchParams(next);
+  }
+
+  function setProject(value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set('project', value);
+    else next.delete('project');
+    setSearchParams(next);
+  }
 
   return (
     <div>
@@ -48,7 +71,54 @@ export function Projects() {
         }
       />
 
-      <div className="px-6 py-6">
+      <div className="px-6 py-6 space-y-4">
+        {!loadingProjects && !isError && (projects?.length ?? 0) > 0 && (
+          <div className="flex flex-wrap items-center gap-4">
+            <div>
+              <label htmlFor="filter-company" className="label inline-block mb-0 mr-2">
+                Company
+              </label>
+              <select
+                id="filter-company"
+                className="select w-48"
+                value={companyId ?? ''}
+                onChange={(e) => setCompany(e.target.value)}
+                aria-label="Filter by company"
+              >
+                <option value="">All companies</option>
+                {(customers ?? []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.company_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filter-project" className="label inline-block mb-0 mr-2">
+                Project
+              </label>
+              <select
+                id="filter-project"
+                className="select w-56"
+                value={projectId ?? ''}
+                onChange={(e) => setProject(e.target.value)}
+                aria-label="Filter by project"
+                disabled={projectsForProjectDropdown.length === 0}
+              >
+                <option value="">All projects</option>
+                {projectsForProjectDropdown.map((p) => {
+                  const customer = customerMap.get(p.customer_id);
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {customer?.company_name ?? `Customer #${p.customer_id}`} — #{p.id}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
+        )}
+
         {loadingProjects && <PageLoading />}
 
         {isError && (
@@ -80,17 +150,23 @@ export function Projects() {
           <div className="card overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">
-                {customerFilter
-                  ? `Projects for ${customerMap.get(Number(customerFilter))?.company_name ?? 'Customer'}`
-                  : 'All Projects'}
+                {companyId && projectId
+                  ? 'Project'
+                  : companyId
+                    ? `Projects for ${customerMap.get(Number(companyId))?.company_name ?? 'Customer'}`
+                    : 'All Projects'}
                 <span className="ml-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 font-normal">
                   {filteredProjects.length}
                 </span>
               </h2>
-              {customerFilter && (
-                <Link to="/projects" className="text-xs text-brand-600 hover:underline">
-                  Show all projects
-                </Link>
+              {(companyId || projectId) && (
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({})}
+                  className="text-xs text-brand-600 hover:underline"
+                >
+                  Clear filters
+                </button>
               )}
             </div>
             <table className="w-full text-sm">
@@ -179,7 +255,7 @@ export function Projects() {
         size="md"
       >
         <ProjectForm
-          preselectedCustomerId={customerFilter ? Number(customerFilter) : undefined}
+          preselectedCustomerId={companyId ? Number(companyId) : undefined}
           onSuccess={() => setModalOpen(false)}
           onCancel={() => setModalOpen(false)}
         />

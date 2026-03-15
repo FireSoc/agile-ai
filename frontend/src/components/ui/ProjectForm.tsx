@@ -23,6 +23,7 @@ export function ProjectForm({ preselectedCustomerId, onSuccess, onCancel }: Proj
 
   const [form, setForm] = useState<ProjectCreate>({
     customer_id: preselectedCustomerId ?? 0,
+    name: '',
     notes: '',
   });
   const [errors, setErrors] = useState<{ customer_id?: string }>({});
@@ -81,6 +82,21 @@ export function ProjectForm({ preselectedCustomerId, onSuccess, onCancel }: Proj
             {errors.customer_id}
           </p>
         )}
+      </div>
+
+      <div>
+        <label htmlFor="project_name" className="label">
+          Project name <span className="text-slate-400 font-normal">(optional)</span>
+        </label>
+        <input
+          id="project_name"
+          type="text"
+          className="input"
+          placeholder="e.g. Q1 onboarding, Pilot launch"
+          value={form.name ?? ''}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value.trim() || undefined }))}
+          maxLength={255}
+        />
       </div>
 
       <div>

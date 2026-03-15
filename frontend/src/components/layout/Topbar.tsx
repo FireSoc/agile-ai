@@ -5,6 +5,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/customers': 'Customers',
   '/projects': 'Projects',
+  '/calendar': 'Calendar',
+  '/simulator': 'Decision Sandbox',
+  '/timeline': 'Deadline Timeline',
 };
 
 interface TopbarProps {

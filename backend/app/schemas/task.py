@@ -40,6 +40,19 @@ class TaskRead(BaseModel):
     updated_at: datetime
 
 
+class TaskCalendarItem(BaseModel):
+    """Task with project and customer info for calendar view."""
+
+    id: int
+    title: str
+    status: TaskStatus
+    due_date: datetime | None
+    required_for_stage_completion: bool
+    project_id: int
+    customer_id: int
+    company_name: str
+
+
 class TaskCompleteResponse(BaseModel):
     task: TaskRead
     stage_advanced: bool

@@ -48,7 +48,7 @@ def create_onboarding_project(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Customer {payload.customer_id} not found.",
         )
-    return create_project(db, customer, notes=payload.notes)
+    return create_project(db, customer, name=payload.name, notes=payload.notes)
 
 
 @router.get("", response_model=list[ProjectRead])

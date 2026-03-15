@@ -394,8 +394,8 @@ def seed_database(db: Session) -> dict:
         customers_created = 2
 
         # --- Sample Projects ---
-        create_project(db, smb_customer, notes="SMB pilot onboarding.")
-        create_project(db, enterprise_customer, notes="Enterprise flagship onboarding.")
+        create_project(db, smb_customer, name="SMB pilot", notes="SMB pilot onboarding.")
+        create_project(db, enterprise_customer, name="Enterprise flagship", notes="Enterprise flagship onboarding.")
         projects_created = 2
 
     return {

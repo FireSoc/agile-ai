@@ -14,6 +14,7 @@ class OnboardingProject(Base):
     customer_id: Mapped[int] = mapped_column(
         ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     current_stage: Mapped[OnboardingStage] = mapped_column(
         Enum(OnboardingStage), nullable=False, default=OnboardingStage.KICKOFF
     )
@@ -40,4 +41,7 @@ class OnboardingProject(Base):
     )
     events: Mapped[list["WorkflowEvent"]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
+    )
+    calendar_events: Mapped[list["CalendarEvent"]] = relationship(  # noqa: F821
+        back_populates="project"
     )

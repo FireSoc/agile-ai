@@ -69,7 +69,7 @@ def _generate_tasks_for_stage(
 
 
 def create_project(
-    db: Session, customer: Customer, notes: str | None = None
+    db: Session, customer: Customer, name: str | None = None, notes: str | None = None
 ) -> OnboardingProject:
     """
     Create a new OnboardingProject for the given customer:
@@ -79,6 +79,7 @@ def create_project(
     """
     project = OnboardingProject(
         customer_id=customer.id,
+        name=name,
         current_stage=OnboardingStage.KICKOFF,
         status=ProjectStatus.ACTIVE,
         risk_flag=False,

@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import customers, projects, seed, simulations, tasks
+from app.api.routes import calendar, customers, projects, seed, simulations, tasks
 from app.core.config import settings
 from app.db.session import init_db
 
@@ -34,6 +34,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    app.include_router(calendar.router)
     app.include_router(customers.router)
     app.include_router(projects.router)
     app.include_router(tasks.router)
