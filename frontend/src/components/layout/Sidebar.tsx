@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -41,9 +41,11 @@ function isToolsActive(pathname: string) {
 function NavGroup({
   label,
   items,
+  onNavClick,
 }: {
   label: string;
   items: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;
+  onNavClick: (to: string) => void;
 }) {
   return (
     <div className="space-y-1">
@@ -62,6 +64,7 @@ function NavGroup({
                 : 'text-white/80 hover:bg-white/10 hover:text-white'
             )
           }
+          onClick={() => onNavClick(to)}
         >
           <Icon className="size-5 shrink-0" aria-hidden />
           <span className="hidden md:inline">{itemLabel}</span>
@@ -73,8 +76,19 @@ function NavGroup({
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [toolsOpen, setToolsOpen] = useState(() => isToolsActive(location.pathname));
   const expanded = toolsOpen || isToolsActive(location.pathname);
+
+  const handleNavClick = (to: string) => {
+    // When on Simulator, programmatic navigate() updates the URL but React Router state
+    // does not update (no re-render). Use full navigation so the app loads the target route.
+    if (location.pathname === '/simulator' && to !== '/simulator') {
+      window.location.assign(to);
+      return;
+    }
+    navigate(to);
+  };
 
   return (
     <aside
@@ -92,8 +106,8 @@ export function Sidebar() {
       </div>
       <Separator className="bg-white/10" />
       <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-4">
-        <NavGroup label="Core" items={CORE_NAV} />
-        <NavGroup label="Workspace" items={WORKSPACE_NAV} />
+        <NavGroup label="Core" items={CORE_NAV} onNavClick={handleNavClick} />
+        <NavGroup label="Workspace" items={WORKSPACE_NAV} onNavClick={handleNavClick} />
         <div className="space-y-1">
           <p className="px-2.5 py-1.5 text-xs font-medium uppercase tracking-wider text-white/50 md:px-3">
             Tools
@@ -137,7 +151,7 @@ export function Sidebar() {
                       : 'text-white/80 hover:bg-white/10 hover:text-white'
                   )
                 }
-                onClick={() => setToolsOpen(true)}
+                onClick={() => { handleNavClick(to); setToolsOpen(true); }}
               >
                 <Icon className="size-5 shrink-0" aria-hidden />
                 <span className="hidden md:inline">{label}</span>

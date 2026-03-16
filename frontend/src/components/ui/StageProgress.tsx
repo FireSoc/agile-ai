@@ -23,10 +23,10 @@ export function StageProgress({ currentStage, status }: StageProgressProps) {
                 <div
                   className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors ${
                     isDone
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-primary border-primary text-primary-foreground'
                       : isCurrent
-                        ? 'border-brand-600 bg-white text-brand-600'
-                        : 'border-slate-200 bg-white text-slate-400'
+                        ? 'border-primary bg-background text-primary'
+                        : 'border-border bg-background text-muted-foreground'
                   }`}
                   aria-current={isCurrent ? 'step' : undefined}
                 >
@@ -34,7 +34,7 @@ export function StageProgress({ currentStage, status }: StageProgressProps) {
                 </div>
                 <span
                   className={`mt-1.5 text-xs font-medium whitespace-nowrap ${
-                    isDone || isCurrent ? 'text-brand-700' : 'text-slate-400'
+                    isDone || isCurrent ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   {STAGE_LABELS[stage]}
@@ -43,7 +43,7 @@ export function StageProgress({ currentStage, status }: StageProgressProps) {
               {index < STAGE_ORDER.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 mb-4 transition-colors ${
-                    isDone ? 'bg-brand-600' : 'bg-slate-200'
+                    isDone ? 'bg-primary' : 'bg-border'
                   }`}
                 />
               )}

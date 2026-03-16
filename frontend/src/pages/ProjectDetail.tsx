@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Clock,
   ChevronLeft,
-  User,
   Calendar,
   Star,
   ShieldAlert,
@@ -91,16 +90,6 @@ function TaskRow({
       </TableCell>
       <TableCell className="px-5 py-3.5">
         <TaskStatusBadge status={task.status} />
-      </TableCell>
-      <TableCell className="px-5 py-3.5">
-        {task.assigned_to ? (
-          <div className="flex items-center gap-1.5 text-xs text-foreground">
-            <User className="h-3.5 w-3.5 text-muted-foreground" />
-            {task.assigned_to}
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground">Unassigned</span>
-        )}
       </TableCell>
       <TableCell className="px-5 py-3.5">
         {task.due_date ? (
@@ -245,17 +234,15 @@ export function ProjectDetail() {
     enabled: !!project && !isNaN(projectId),
   });
 
-  const { data: summary } = useQuery({
-    queryKey: ['project-summary', projectId],
-    queryFn: () => projectsApi.getSummary(projectId),
-    enabled: !!project && !isNaN(projectId),
-  });
-
   const riskSummaryMutation = useMutation({
     mutationFn: () => aiApi.getRiskSummary(projectId),
   });
 
   const projectName = project?.name ?? customer?.company_name ?? `Project #${projectId}`;
+
+  useEffect(() => {
+    if (!isNaN(projectId) && projectId > 0) riskSummaryMutation.mutate();
+  }, [projectId]);
 
   useEffect(() => {
     if (!project) return;
@@ -488,38 +475,6 @@ export function ProjectDetail() {
               </Card>
             )}
 
-            {summary && (
-              <Card aria-labelledby="summary-heading">
-                <CardHeader>
-                  <CardTitle id="summary-heading" className="text-sm">Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="text-sm space-y-2">
-                    <div>
-                      <dt className="text-muted-foreground">Complete</dt>
-                      <dd className="text-foreground">{summary.what_is_complete}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Blocked</dt>
-                      <dd className="text-foreground">{summary.what_is_blocked}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Risk</dt>
-                      <dd className="text-foreground">{summary.why_risk_elevated}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Next</dt>
-                      <dd className="text-foreground">{summary.what_happens_next}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Go-live</dt>
-                      <dd className="text-foreground">{summary.go_live_realistic}</dd>
-                    </div>
-                  </dl>
-                </CardContent>
-              </Card>
-            )}
-
             <Card aria-labelledby="ai-risk-summary-heading">
               <CardHeader>
                 <CardTitle id="ai-risk-summary-heading" className="text-sm flex items-center gap-2">
@@ -527,7 +482,7 @@ export function ProjectDetail() {
                   AI risk summary
                 </CardTitle>
                 <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                  Short, actionable summary for ops (generated on demand).
+                  Short, actionable summary for ops (generated when you open this page).
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -621,7 +576,6 @@ export function ProjectDetail() {
                             <TableRow className="sr-only">
                               <TableHead>Task</TableHead>
                               <TableHead>Status</TableHead>
-                              <TableHead>Assigned To</TableHead>
                               <TableHead>Due Date</TableHead>
                               <TableHead>Actions</TableHead>
                             </TableRow>

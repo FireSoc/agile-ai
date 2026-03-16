@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   children: ReactNode;
@@ -25,18 +26,14 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError && this.state.error) {
       return (
         <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 py-12">
-          <AlertTriangle className="h-12 w-12 text-red-500" aria-hidden />
-          <h2 className="text-lg font-semibold text-slate-800">Something went wrong</h2>
-          <p className="max-w-md text-center text-sm text-slate-600">
+          <AlertTriangle className="h-12 w-12 text-destructive" aria-hidden />
+          <h2 className="text-lg font-semibold text-foreground">Something went wrong</h2>
+          <p className="max-w-md text-center text-sm text-muted-foreground">
             {this.state.error.message}
           </p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => this.setState({ hasError: false, error: null })}
-          >
+          <Button onClick={() => this.setState({ hasError: false, error: null })}>
             Try again
-          </button>
+          </Button>
         </div>
       );
     }

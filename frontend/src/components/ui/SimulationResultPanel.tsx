@@ -88,23 +88,23 @@ function TaskList({ assessments }: { assessments: TaskAssessment[] }) {
 
   return (
     <section aria-labelledby="task-list-heading">
-      <h3 id="task-list-heading" className="text-sm font-semibold text-slate-800 mb-2">
+      <h3 id="task-list-heading" className="text-sm font-semibold text-foreground mb-2">
         Tasks
       </h3>
-      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 px-3 py-2 bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           <span>Task</span>
           <span>Risk severity</span>
         </div>
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-border">
           {sorted.map((a) => (
             <li
               key={a.task_title}
               className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-1 sm:gap-3 px-3 py-2 sm:items-center"
             >
               <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">{a.task_title}</p>
-                <p className="text-xs text-slate-500 capitalize">{a.stage.replace('_', ' ')}</p>
+                <p className="text-sm font-medium text-foreground truncate">{a.task_title}</p>
+                <p className="text-xs text-muted-foreground capitalize">{a.stage.replace('_', ' ')}</p>
               </div>
               <div className="flex items-center">
                 <RiskBadge band={a.risk_band} />

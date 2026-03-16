@@ -19,9 +19,8 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { ActionPanel } from '@/components/ui/ActionPanel';
-import { InsightCard } from '@/components/ui/InsightCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -332,7 +331,7 @@ export function Dashboard() {
         </div>
 
         <div className="space-y-6">
-          <InsightCard
+          <ActionPanel
             title="Simulation"
             description="Test timeline risk and see AI insights"
             icon={<FlaskConical className="size-4" />}
@@ -344,32 +343,6 @@ export function Dashboard() {
               Open simulator
               <ArrowRight className="size-3.5" />
             </Link>
-          </InsightCard>
-
-          <ActionPanel
-            title="To-dos"
-            description="Today, overdue, future"
-          >
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="today">Today ({todoBuckets.today.length})</TabsTrigger>
-                <TabsTrigger value="overdue">Overdue ({todoBuckets.overdue.length})</TabsTrigger>
-                <TabsTrigger value="future">Future ({todoBuckets.future.length})</TabsTrigger>
-                <TabsTrigger value="all">All ({todoBuckets.all.length})</TabsTrigger>
-              </TabsList>
-              <TabsContent value="today" className="mt-3">
-                <TodoList tasks={todoBuckets.today} />
-              </TabsContent>
-              <TabsContent value="overdue" className="mt-3">
-                <TodoList tasks={todoBuckets.overdue} />
-              </TabsContent>
-              <TabsContent value="future" className="mt-3">
-                <TodoList tasks={todoBuckets.future} />
-              </TabsContent>
-              <TabsContent value="all" className="mt-3">
-                <TodoList tasks={todoBuckets.all} />
-              </TabsContent>
-            </Tabs>
           </ActionPanel>
 
           <ActionPanel title="Recent activity" description="Across projects">
@@ -419,23 +392,3 @@ export function Dashboard() {
   );
 }
 
-function TodoList({ tasks }: { tasks: TaskWithProject[] }) {
-  if (tasks.length === 0) {
-    return <p className="text-sm text-muted-foreground">None</p>;
-  }
-  return (
-    <ul className="space-y-2">
-      {tasks.slice(0, 10).map((t) => (
-        <li key={`${t.project_id}-${t.id}`} className="text-sm">
-          <Link to={`/projects/${t.project_id}`} className="text-primary hover:underline">
-            {t.title}
-          </Link>
-          <span className="ml-1 text-muted-foreground">· {t.projectName}</span>
-        </li>
-      ))}
-      {tasks.length > 10 && (
-        <li className="text-xs text-muted-foreground">+{tasks.length - 10} more</li>
-      )}
-    </ul>
-  );
-}

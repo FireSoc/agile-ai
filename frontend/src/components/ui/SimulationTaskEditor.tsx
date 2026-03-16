@@ -1,4 +1,5 @@
 import { Trash2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { SimulationTaskInput, OnboardingStage } from '../../types';
 
 const STAGES: OnboardingStage[] = ['kickoff', 'setup', 'integration', 'training', 'go_live'];
@@ -47,34 +48,34 @@ export function SimulationTaskEditor({ tasks, onChange }: Props) {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-lg border border-slate-200">
+      <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-48">Title</th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Stage</th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Days from project start until this task is due">Due (days)</th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Estimated working days to complete">Duration</th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Business impact if missed: 1=nice-to-have, 4=mission-critical">Criticality</th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Number of predecessor tasks">Deps</th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Approval layers required (0–3)">Approvals</th>
-              <th className="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Customer must act on this task">Customer?</th>
-              <th className="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Third-party integration needed">Integration?</th>
-              <th className="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Needs setup data before it can complete">Setup Data?</th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Days this task is already behind">Existing delay</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide w-48">Title</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">Stage</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Days from project start until this task is due">Due (days)</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Estimated working days to complete">Duration</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Business impact if missed: 1=nice-to-have, 4=mission-critical">Criticality</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Number of predecessor tasks">Deps</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Approval layers required (0–3)">Approvals</th>
+              <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Customer must act on this task">Customer?</th>
+              <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Third-party integration needed">Integration?</th>
+              <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Needs setup data before it can complete">Setup Data?</th>
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide" title="Days this task is already behind">Existing delay</th>
               <th className="px-3 py-2.5 w-8" aria-label="Actions" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {tasks.length === 0 && (
               <tr>
-                <td colSpan={12} className="px-4 py-8 text-center text-sm text-slate-400">
+                <td colSpan={12} className="px-4 py-8 text-center text-sm text-muted-foreground">
                   No tasks yet. Add one below.
                 </td>
               </tr>
             )}
             {tasks.map((task, i) => (
-              <tr key={i} className="hover:bg-slate-50 transition-colors">
+              <tr key={i} className="hover:bg-muted/30 transition-colors">
                 <td className="px-2 py-2">
                   <input
                     className="input-legacy text-xs py-1 min-w-[10rem] h-7"
@@ -192,7 +193,7 @@ export function SimulationTaskEditor({ tasks, onChange }: Props) {
                   <button
                     type="button"
                     onClick={() => remove(i)}
-                    className="p-1 text-slate-400 hover:text-red-500 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-red-400"
+                    className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded focus:outline-none focus:ring-2 focus:ring-ring"
                     aria-label={`Remove task ${i + 1}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -204,14 +205,10 @@ export function SimulationTaskEditor({ tasks, onChange }: Props) {
         </table>
       </div>
 
-      <button
-        type="button"
-        onClick={add}
-        className="btn-secondary text-xs"
-      >
+      <Button type="button" variant="secondary" size="sm" onClick={add} className="text-xs">
         <Plus className="h-3.5 w-3.5" />
         Add Task
-      </button>
+      </Button>
     </div>
   );
 }

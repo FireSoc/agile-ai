@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type {
   SimulationCompareResponse,
   ComparisonSummary,
@@ -33,7 +34,7 @@ function Delta({
 
   if (neutral) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-slate-500">
+      <span className="inline-flex items-center gap-0.5 text-muted-foreground">
         <Minus className="h-3.5 w-3.5" />
         <span>No change</span>
       </span>
@@ -69,12 +70,12 @@ function ComparisonCard({
 
   return (
     <article
-      className={`rounded-lg border p-4 space-y-3 ${isBest ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200 bg-white'}`}
+      className={`rounded-lg border p-4 space-y-3 ${isBest ? 'border-emerald-300 bg-emerald-50/50' : 'border-border bg-card'}`}
       aria-label={`Branch: ${summary.branch_name}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <h4 className="text-sm font-semibold text-slate-900 truncate">{summary.branch_name}</h4>
+          <h4 className="text-sm font-semibold text-foreground truncate">{summary.branch_name}</h4>
           {isBest && (
             <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 flex-shrink-0">
               <Star className="h-3 w-3 fill-emerald-500" aria-hidden />
@@ -91,19 +92,19 @@ function ComparisonCard({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
         <div className="space-y-0.5">
-          <p className="text-slate-500">Avg risk score</p>
+          <p className="text-muted-foreground">Avg risk score</p>
           <Delta value={summary.risk_score_delta} />
         </div>
         <div className="space-y-0.5">
-          <p className="text-slate-500">TTFV</p>
+          <p className="text-muted-foreground">TTFV</p>
           <Delta value={summary.ttfv_delta_days} unit=" days" />
         </div>
         <div className="space-y-0.5">
-          <p className="text-slate-500">Total duration</p>
+          <p className="text-muted-foreground">Total duration</p>
           <Delta value={summary.total_duration_delta_days} unit=" days" />
         </div>
         <div className="space-y-0.5">
-          <p className="text-slate-500">Risk signals</p>
+          <p className="text-muted-foreground">Risk signals</p>
           <Delta value={summary.risk_signal_delta} unit="" />
         </div>
       </div>
@@ -122,7 +123,7 @@ function ComparisonCard({
           {expanded && (
             <ul className="mt-2 space-y-1">
               {summary.top_improvements.map((imp, i) => (
-                <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
+                <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
                   <TrendingDown className="h-3 w-3 text-emerald-500 flex-shrink-0 mt-0.5" aria-hidden />
                   {imp}
                 </li>
@@ -170,7 +171,7 @@ export function BranchEditor({ branches, baselineTasks, onChange }: BranchEditor
       {branches.map((branch, i) => (
         <div
           key={i}
-          className="rounded-lg border border-slate-200 bg-white p-4 space-y-3"
+          className="rounded-lg border border-border bg-card p-4 space-y-3"
         >
           <div className="flex items-center justify-between gap-2">
             <input
@@ -184,7 +185,7 @@ export function BranchEditor({ branches, baselineTasks, onChange }: BranchEditor
             <button
               type="button"
               onClick={() => removeBranch(i)}
-              className="p-1.5 text-slate-400 hover:text-red-500 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded focus:outline-none focus:ring-2 focus:ring-ring"
               aria-label={`Remove branch ${i + 1}`}
             >
               <Trash2 className="h-4 w-4" />
@@ -246,7 +247,7 @@ export function BranchEditor({ branches, baselineTasks, onChange }: BranchEditor
                     ))}
                   </select>
                   <div className="flex items-center gap-1">
-                    <label className="text-xs text-slate-500 whitespace-nowrap">Due (days)</label>
+                    <label className="text-xs text-muted-foreground whitespace-nowrap">Due (days)</label>
                     <input
                       className="input-legacy text-xs py-1 w-16 text-center h-7"
                       type="number"
@@ -267,16 +268,18 @@ export function BranchEditor({ branches, baselineTasks, onChange }: BranchEditor
                       const newOvs = (branch.task_overrides ?? []).filter((_, k) => k !== j);
                       updateBranch(i, { task_overrides: newOvs });
                     }}
-                    className="p-1 text-slate-400 hover:text-red-500 transition-colors rounded"
+                    className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded"
                     aria-label={`Remove override ${j + 1}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
-              <button
+              <Button
                 type="button"
-                className="btn-secondary text-xs"
+                variant="secondary"
+                size="sm"
+                className="text-xs"
                 onClick={() => {
                   const baseline = baselineTasks[0];
                   const stub: SimulationTaskInput = {
@@ -298,20 +301,21 @@ export function BranchEditor({ branches, baselineTasks, onChange }: BranchEditor
               >
                 <Plus className="h-3.5 w-3.5" />
                 Override a task
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       ))}
 
-      <button
+      <Button
         type="button"
-        className="btn-secondary text-sm"
+        variant="secondary"
+        size="sm"
         onClick={() => onChange([...branches, emptyBranch(branches.length)])}
       >
         <Plus className="h-4 w-4" />
         Add Branch
-      </button>
+      </Button>
     </div>
   );
 }

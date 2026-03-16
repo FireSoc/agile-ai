@@ -18,7 +18,7 @@ const EVENT_META: Partial<Record<EventType, { icon: React.ElementType; color: st
   playbook_selected: { icon: ListTodo, color: 'text-indigo-500 bg-indigo-50', label: 'Playbook Selected' },
   tasks_generated: { icon: ListTodo, color: 'text-indigo-500 bg-indigo-50', label: 'Tasks Generated' },
   task_completed: { icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50', label: 'Task Completed' },
-  project_advanced: { icon: TrendingUp, color: 'text-brand-500 bg-brand-50', label: 'Stage Advanced' },
+  project_advanced: { icon: TrendingUp, color: 'text-primary bg-primary/10', label: 'Stage Advanced' },
   reminder_triggered: { icon: Bell, color: 'text-amber-500 bg-amber-50', label: 'Reminder' },
   risk_flag_added: { icon: AlertTriangle, color: 'text-red-500 bg-red-50', label: 'Risk Flagged' },
   risk_flag_cleared: { icon: ShieldCheck, color: 'text-emerald-500 bg-emerald-50', label: 'Risk Cleared' },
@@ -61,7 +61,7 @@ export function EventFeed({ events, maxItems }: EventFeedProps) {
       {displayed.map((event, idx) => {
         const meta = EVENT_META[event.event_type] ?? {
           icon: FolderOpen,
-          color: 'text-slate-500 bg-slate-50',
+          color: 'text-muted-foreground bg-muted',
           label: event.event_type,
         };
         const Icon = meta.icon;
@@ -73,20 +73,20 @@ export function EventFeed({ events, maxItems }: EventFeedProps) {
                 <Icon className="h-3.5 w-3.5" />
               </div>
               {idx < displayed.length - 1 && (
-                <div className="w-px flex-1 bg-slate-100 my-1 min-h-4" />
+                <div className="w-px flex-1 bg-border my-1 min-h-4" />
               )}
             </div>
             <div className="pb-4 min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700">{meta.label}</p>
+                <p className="text-xs font-semibold text-foreground">{meta.label}</p>
                 <time
                   dateTime={event.created_at}
-                  className="text-xs text-slate-400 flex-shrink-0"
+                  className="text-xs text-muted-foreground flex-shrink-0"
                 >
                   {formatRelativeTime(event.created_at)}
                 </time>
               </div>
-              <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">{event.message}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{event.message}</p>
             </div>
           </li>
         );
