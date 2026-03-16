@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import {
@@ -9,9 +9,17 @@ import {
   ArrowRight,
   LayoutGrid,
   Activity,
+  FlaskConical,
+  Inbox,
 } from 'lucide-react';
 import { projectsApi } from '../api/projects';
 import { customersApi } from '../api/customers';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { KpiCard } from '@/components/ui/KpiCard';
+import { ActionPanel } from '@/components/ui/ActionPanel';
+import { InsightCard } from '@/components/ui/InsightCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
@@ -23,13 +31,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { EventFeed } from '@/components/ui/EventFeed';
 import { STAGE_LABELS, type Project, type Task, type OnboardingEvent, type ProjectDetail } from '../types';
 
 const DASHBOARD_PROJECT_LIMIT = 10;
-const KPI_ICON_CLASS = 'size-5 text-muted-foreground';
 
 export interface TaskWithProject extends Task {
   projectName: string;
@@ -54,6 +63,7 @@ function isFuture(dateStr: string | null): boolean {
 
 export function Dashboard() {
   const [tasksFilter, setTasksFilter] = useState<'all' | 'mine'>('all');
+  const { setPageLayout } = usePageLayout();
 
   const { data: projects, isPending: loadingProjects, isError: errorProjects, refetch: refetchProjects } = useQuery({
     queryKey: ['projects'],
@@ -133,15 +143,47 @@ export function Dashboard() {
   const totalTasks = aggregatedTasks.length;
   const completedTasks = aggregatedTasks.filter((t) => t.status === 'completed').length;
   const totalEvents = aggregatedEvents.length;
+  const needsAttention = todoBuckets.overdue.length + (atRiskProjects > 0 ? 1 : 0);
+
+  useEffect(() => {
+    setPageLayout({
+      title: 'Overview',
+      subtitle: 'Onboarding operations at a glance',
+      action: (
+        <div className="flex items-center gap-2">
+          <Link to="/ops-inbox" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+            Ops Inbox
+          </Link>
+          <Link to="/simulator" className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5')}>
+            <FlaskConical className="size-4" />
+            Run simulation
+          </Link>
+        </div>
+      ),
+    });
+  }, [setPageLayout]);
 
   const isLoadingDetails = detailQueries.some((q) => q.isPending);
   if (loadingProjects || loadingCustomers) return <PageLoading />;
 
   return (
-    <div className="p-6 space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Onboarding at a glance: active projects, at-risk accounts, and quick access to customers and projects.
-      </p>
+    <PageContainer className="flex flex-col section-gap gap-6">
+      <PageHeader
+        title="Onboarding operations"
+        subtitle="Active projects, at-risk accounts, and quick access to the simulator and ops inbox."
+        action={
+          <div className="flex items-center gap-2">
+            <Link to="/ops-inbox" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
+              <Inbox className="size-4" />
+              Ops Inbox
+            </Link>
+            <Link to="/simulator" className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5')}>
+              <FlaskConical className="size-4" />
+              Run simulation
+            </Link>
+          </div>
+        }
+      />
 
       {errorProjects && (
         <ErrorAlert
@@ -150,133 +192,97 @@ export function Dashboard() {
         />
       )}
 
-      <section aria-labelledby="stats-heading">
-        <h2 id="stats-heading" className="sr-only">
-          Onboarding overview
+      <section aria-labelledby="kpi-heading" className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+        <h2 id="kpi-heading" className="sr-only">
+          North star metrics
         </h2>
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
-          <Card>
-            <CardContent className="flex flex-row items-start gap-4 pt-6">
-              <div className="rounded-lg bg-muted p-2.5">
-                <FolderKanban className={KPI_ICON_CLASS} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Projects</p>
-                <p className="mt-0.5 text-2xl font-semibold tabular-nums">
-                  {completedProjects}/{totalProjects}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-row items-start gap-4 pt-6">
-              <div className="rounded-lg bg-muted p-2.5">
-                <LayoutGrid className={KPI_ICON_CLASS} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Tasks</p>
-                <p className="mt-0.5 text-2xl font-semibold tabular-nums">
-                  {completedTasks}/{totalTasks}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-row items-start gap-4 pt-6">
-              <div className="rounded-lg bg-muted p-2.5">
-                <AlertTriangle className="size-5 text-destructive" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">At Risk</p>
-                <p className="mt-0.5 text-2xl font-semibold tabular-nums">{atRiskProjects}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-row items-start gap-4 pt-6">
-              <div className="rounded-lg bg-muted p-2.5">
-                <CheckCircle2 className={KPI_ICON_CLASS} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                <p className="mt-0.5 text-2xl font-semibold tabular-nums">{completedProjects}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-row items-start gap-4 pt-6">
-              <div className="rounded-lg bg-muted p-2.5">
-                <Activity className={KPI_ICON_CLASS} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Activities</p>
-                <p className="mt-0.5 text-2xl font-semibold tabular-nums">{totalEvents}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <KpiCard
+          label="Projects"
+          value={`${completedProjects}/${totalProjects}`}
+          icon={<FolderKanban className="size-5 text-muted-foreground" />}
+        />
+        <KpiCard
+          label="Tasks"
+          value={`${completedTasks}/${totalTasks}`}
+          icon={<LayoutGrid className="size-5 text-muted-foreground" />}
+        />
+        <KpiCard
+          label="At risk"
+          value={atRiskProjects}
+          icon={<AlertTriangle className="size-5 text-destructive" />}
+          iconClassName="bg-destructive/10"
+        />
+        <KpiCard
+          label="Completed"
+          value={completedProjects}
+          icon={<CheckCircle2 className="size-5 text-muted-foreground" />}
+        />
+        <KpiCard
+          label="Activities"
+          value={totalEvents}
+          icon={<Activity className="size-5 text-muted-foreground" />}
+        />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2 space-y-6" aria-labelledby="tasks-heading">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b pb-4">
-              <CardTitle id="tasks-heading" className="text-base">
-                Tasks: {filteredTasks.length}
-              </CardTitle>
+        <div className="space-y-6 lg:col-span-2">
+          <ActionPanel
+            title="Next best actions"
+            description="Tasks and items that need attention"
+            action={
               <Tabs value={tasksFilter} onValueChange={(v) => setTasksFilter(v as 'all' | 'mine')}>
                 <TabsList>
                   <TabsTrigger value="all">All</TabsTrigger>
                   <TabsTrigger value="mine">Mine</TabsTrigger>
                 </TabsList>
               </Tabs>
-            </CardHeader>
-            <CardContent className="p-0">
-              {isLoadingDetails ? (
-                <div className="px-5 py-8 text-center text-sm text-muted-foreground">Loading tasks…</div>
-              ) : filteredTasks.length === 0 ? (
-                <div className="px-5 py-8 text-center text-sm text-muted-foreground">No tasks.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Module / Stage</TableHead>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Due date</TableHead>
+            }
+          >
+            {needsAttention > 0 && (
+              <p className="mb-3 text-xs font-medium text-destructive">
+                {todoBuckets.overdue.length} overdue · {atRiskProjects} at-risk project{atRiskProjects !== 1 ? 's' : ''}
+              </p>
+            )}
+            {isLoadingDetails ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">Loading tasks…</p>
+            ) : filteredTasks.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">No tasks.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Task</TableHead>
+                    <TableHead>Stage</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Due</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTasks.slice(0, 8).map((task) => (
+                    <TableRow key={`${task.project_id}-${task.id}`}>
+                      <TableCell className="font-medium">{task.title}</TableCell>
+                      <TableCell>{STAGE_LABELS[task.stage]}</TableCell>
+                      <TableCell>
+                        <Link to={`/projects/${task.project_id}`} className="text-primary hover:underline">
+                          {task.projectName}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {task.due_date
+                          ? new Date(task.due_date).toLocaleDateString('en-US')
+                          : '—'}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredTasks.map((task) => (
-                      <TableRow key={`${task.project_id}-${task.id}`}>
-                        <TableCell className="font-medium">{task.title}</TableCell>
-                        <TableCell>{STAGE_LABELS[task.stage]}</TableCell>
-                        <TableCell>
-                          <Link to={`/projects/${task.project_id}`} className="text-primary hover:underline">
-                            {task.projectName}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          {task.status === 'completed' ? '100%' : '0%'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {task.due_date
-                            ? new Date(task.due_date).toLocaleDateString('en-US')
-                            : '—'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </ActionPanel>
 
           <Card>
             <CardHeader className="border-b pb-4">
-              <CardTitle className="text-base">Projects: {projects?.length ?? 0}</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Progress, end date, owner</p>
+              <CardTitle className="text-base">Projects</CardTitle>
+              <p className="mt-0.5 text-xs text-muted-foreground">Progress and go-live</p>
             </CardHeader>
             <CardContent className="p-0">
               {!projects?.length ? (
@@ -290,7 +296,6 @@ export function Dashboard() {
                       <TableHead>Project</TableHead>
                       <TableHead>Progress</TableHead>
                       <TableHead>End date</TableHead>
-                      <TableHead>Owner</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -308,7 +313,7 @@ export function Dashboard() {
                             </Link>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2 w-24">
+                            <div className="flex w-24 items-center gap-2">
                               <Progress value={pct} className="h-2 flex-1" />
                               <span className="text-xs tabular-nums">{pct}%</span>
                             </div>
@@ -316,7 +321,6 @@ export function Dashboard() {
                           <TableCell className="text-muted-foreground">
                             {endDate ? new Date(endDate).toLocaleDateString('en-US') : '—'}
                           </TableCell>
-                          <TableCell className="text-muted-foreground">—</TableCell>
                         </TableRow>
                       );
                     })}
@@ -325,102 +329,93 @@ export function Dashboard() {
               )}
             </CardContent>
           </Card>
-        </section>
+        </div>
 
-        <section className="space-y-6" aria-labelledby="todos-heading">
-          <Card>
-            <CardHeader className="border-b pb-4">
-              <CardTitle id="todos-heading" className="text-base">
-                My To-dos
-              </CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Today, Overdue, Future, All</p>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="today">
-                    Today ({todoBuckets.today.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="overdue">
-                    Overdue ({todoBuckets.overdue.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="future">
-                    Future ({todoBuckets.future.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="all">
-                    All ({todoBuckets.all.length})
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="today" className="mt-3">
-                  <TodoList tasks={todoBuckets.today} />
-                </TabsContent>
-                <TabsContent value="overdue" className="mt-3">
-                  <TodoList tasks={todoBuckets.overdue} />
-                </TabsContent>
-                <TabsContent value="future" className="mt-3">
-                  <TodoList tasks={todoBuckets.future} />
-                </TabsContent>
-                <TabsContent value="all" className="mt-3">
-                  <TodoList tasks={todoBuckets.all} />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+        <div className="space-y-6">
+          <InsightCard
+            title="Simulation"
+            description="Test timeline risk and see AI insights"
+            icon={<FlaskConical className="size-4" />}
+          >
+            <p className="text-sm text-muted-foreground">
+              Run a simulation on any project to see how delays and assumptions affect go-live, virtual inboxes, and risk.
+            </p>
+            <Link to="/simulator" className={cn(buttonVariants({ size: 'sm' }), 'mt-3 flex w-full gap-1.5')}>
+              Open simulator
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </InsightCard>
 
-          <Card>
-            <CardHeader className="border-b pb-4">
-              <CardTitle className="text-base">Recent activity</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">What changed across projects</p>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <EventFeed events={aggregatedEvents} maxItems={5} />
-            </CardContent>
-          </Card>
+          <ActionPanel
+            title="To-dos"
+            description="Today, overdue, future"
+          >
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="today">Today ({todoBuckets.today.length})</TabsTrigger>
+                <TabsTrigger value="overdue">Overdue ({todoBuckets.overdue.length})</TabsTrigger>
+                <TabsTrigger value="future">Future ({todoBuckets.future.length})</TabsTrigger>
+                <TabsTrigger value="all">All ({todoBuckets.all.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="today" className="mt-3">
+                <TodoList tasks={todoBuckets.today} />
+              </TabsContent>
+              <TabsContent value="overdue" className="mt-3">
+                <TodoList tasks={todoBuckets.overdue} />
+              </TabsContent>
+              <TabsContent value="future" className="mt-3">
+                <TodoList tasks={todoBuckets.future} />
+              </TabsContent>
+              <TabsContent value="all" className="mt-3">
+                <TodoList tasks={todoBuckets.all} />
+              </TabsContent>
+            </Tabs>
+          </ActionPanel>
+
+          <ActionPanel title="Recent activity" description="Across projects">
+            <EventFeed events={aggregatedEvents} maxItems={5} />
+          </ActionPanel>
 
           <Card>
-            <CardHeader className="border-b pb-4">
-              <CardTitle className="text-base">Quick Actions</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Customers → projects → tasks & risk
-              </p>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Quick links</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4 space-y-2">
+            <CardContent className="space-y-2">
               <Link
                 to="/customers"
-                className="flex w-full items-center justify-between rounded-lg border border-input bg-background py-3 px-4 text-sm font-medium hover:bg-muted hover:text-foreground gap-2.5"
+                className="flex w-full items-center justify-between rounded-lg border border-input bg-background px-4 py-3 text-sm font-medium hover:bg-muted hover:text-foreground"
               >
-                <Users className="size-4 text-muted-foreground" />
-                <span>Customers</span>
+                <span className="flex items-center gap-2.5">
+                  <Users className="size-4 text-muted-foreground" />
+                  Customers
+                </span>
                 <ArrowRight className="size-3.5 text-muted-foreground" />
               </Link>
               <Link
                 to="/projects"
-                className="flex w-full items-center justify-between rounded-lg border border-input bg-background py-3 px-4 text-sm font-medium hover:bg-muted hover:text-foreground gap-2.5"
+                className="flex w-full items-center justify-between rounded-lg border border-input bg-background px-4 py-3 text-sm font-medium hover:bg-muted hover:text-foreground"
               >
-                <FolderKanban className="size-4 text-muted-foreground" />
-                <span>Onboarding Projects</span>
+                <span className="flex items-center gap-2.5">
+                  <FolderKanban className="size-4 text-muted-foreground" />
+                  Projects
+                </span>
                 <ArrowRight className="size-3.5 text-muted-foreground" />
               </Link>
               {atRiskProjects > 0 && (
-                <Card className="mt-3 border-destructive/50 bg-destructive/5">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="size-4 text-destructive shrink-0" />
-                      <p className="text-sm font-medium text-destructive">
-                        {atRiskProjects} project{atRiskProjects > 1 ? 's' : ''} at risk
-                      </p>
-                    </div>
-                    <Link to="/ops-inbox" className="mt-1 text-sm font-medium text-destructive underline-offset-4 hover:underline flex items-center gap-1">
-                      Review in Ops Inbox <ArrowRight className="size-3" />
-                    </Link>
-                  </CardContent>
-                </Card>
+                <Link
+                  to="/ops-inbox"
+                  className="mt-2 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive"
+                >
+                  <AlertTriangle className="size-4 shrink-0" />
+                  {atRiskProjects} at risk — Review in Ops Inbox
+                  <ArrowRight className="size-3.5 ml-auto" />
+                </Link>
               )}
             </CardContent>
           </Card>
-        </section>
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -435,7 +430,7 @@ function TodoList({ tasks }: { tasks: TaskWithProject[] }) {
           <Link to={`/projects/${t.project_id}`} className="text-primary hover:underline">
             {t.title}
           </Link>
-          <span className="text-muted-foreground ml-1">· {t.projectName}</span>
+          <span className="ml-1 text-muted-foreground">· {t.projectName}</span>
         </li>
       ))}
       {tasks.length > 10 && (

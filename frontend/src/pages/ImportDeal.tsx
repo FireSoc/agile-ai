@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { crmApi } from '../api/crm';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -28,6 +31,7 @@ function toISOOrNull(value: string): string | null {
 export function ImportDeal() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { setPageLayout } = usePageLayout();
   const [form, setForm] = useState<DealIngestPayload>({
     crm_source: '',
     company_name: '',
@@ -91,13 +95,19 @@ export function ImportDeal() {
     'flex h-9 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
   );
 
+  useEffect(() => {
+    setPageLayout({
+      title: 'Import deal',
+      subtitle: 'Create an onboarding project from a closed-won deal.',
+    });
+  }, [setPageLayout]);
+
   return (
-    <div className="p-6 max-w-2xl">
-      <p className="text-sm text-muted-foreground mb-6">
-        Create an onboarding project from a closed-won deal. This is the same flow used when your CRM sends a deal
-        to <code className="text-xs bg-muted px-1 rounded">POST /crm/deals/ingest</code>. Required fields:
-        company name and CRM source.
-      </p>
+    <PageContainer className="max-w-2xl">
+      <PageHeader
+        title="Import deal"
+        subtitle="Create an onboarding project from a closed-won deal. Same flow as POST /crm/deals/ingest. Required: company name and CRM source."
+      />
 
       {mutation.isError && (
         <ErrorAlert
@@ -249,6 +259,6 @@ export function ImportDeal() {
           </form>
         </CardContent>
       </Card>
-    </div>
-  )
+    </PageContainer>
+  );
 }

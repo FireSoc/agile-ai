@@ -1,14 +1,15 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navigate } from 'react-router-dom';
 import { FolderKanban, Plus } from 'lucide-react';
 import { projectsApi } from '../api/projects';
 import { customersApi } from '../api/customers';
 import { ProjectForm } from '../components/ui/ProjectForm';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { useState } from 'react';
 
 function getDefaultProjectId(
   projects: { id: number; customer_id: number; created_at: string }[],
@@ -55,10 +56,10 @@ export function ProjectsLanding() {
   }
 
   return (
-    <div className="p-6">
+    <PageContainer>
       <EmptyState
         title="No projects yet"
-        description="Create an onboarding project for a customer to get started."
+        description="Create an onboarding project for a customer to get started. This is your workspace—add a project to run simulations and track onboarding."
         icon={<FolderKanban className="h-12 w-12 text-muted-foreground" />}
         action={
           <Button onClick={() => setModalOpen(true)}>
@@ -78,6 +79,6 @@ export function ProjectsLanding() {
           />
         </DialogContent>
       </Dialog>
-    </div>
-  )
+    </PageContainer>
+  );
 }

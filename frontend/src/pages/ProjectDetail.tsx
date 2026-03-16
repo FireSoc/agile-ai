@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -17,6 +17,7 @@ import {
   Lightbulb,
   ArrowRightCircle,
   Sparkles,
+  FlaskConical,
 } from 'lucide-react';
 import { projectsApi } from '../api/projects';
 import { aiApi } from '../api/ai';
@@ -34,6 +35,8 @@ import { EventFeed } from '../components/ui/EventFeed';
 import { PageLoading, LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -46,6 +49,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge as ShadcnBadge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Task } from '../types';
 
@@ -138,6 +142,7 @@ export function ProjectDetail() {
   const navigate = useNavigate();
   const projectId = Number(id);
   const queryClient = useQueryClient();
+  const { setPageLayout } = usePageLayout();
 
   const [completingTaskId, setCompletingTaskId] = useState<number | null>(null);
   const [actionMsg, setActionMsg] = useState<{ text: string; type: 'success' | 'info' } | null>(null);
@@ -250,6 +255,21 @@ export function ProjectDetail() {
     mutationFn: () => aiApi.getRiskSummary(projectId),
   });
 
+  const projectName = project?.name ?? customer?.company_name ?? `Project #${projectId}`;
+
+  useEffect(() => {
+    if (!project) return;
+    setPageLayout({
+      title: projectName,
+      action: (
+        <Link to="/simulator" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
+          <FlaskConical className="size-4" />
+          Simulator
+        </Link>
+      ),
+    });
+  }, [setPageLayout, projectName, project]);
+
   if (isPending) return <PageLoading />;
 
   if (isError || !project) {
@@ -278,7 +298,7 @@ export function ProjectDetail() {
   const customerMap = new Map(customers?.map((c) => [c.id, c]) ?? []);
 
   return (
-    <div className="p-6 space-y-6">
+    <PageContainer className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <Label htmlFor="project-detail-company" className="text-sm font-medium">
@@ -348,9 +368,7 @@ export function ProjectDetail() {
                       )}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                    {project.name
-                      ? `${customer?.company_name ?? 'Customer'} · #${project.id}`
-                      : `Onboarding Project #${project.id}`}
+                      Onboarding Project #{project.id}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -408,7 +426,7 @@ export function ProjectDetail() {
               </Card>
             </section>
 
-            {(project.risk_flag || (risk && risk.explanations?.length)) && (
+            {(project.risk_flag || (risk?.explanations?.length ?? 0) > 0) && (
               <Card className="border-destructive/30 bg-destructive/5" aria-labelledby="risk-heading">
                 <CardHeader>
                   <CardTitle id="risk-heading" className="text-sm flex items-center gap-2">
@@ -634,9 +652,11 @@ export function ProjectDetail() {
                 <CardTitle id="events-heading" className="text-sm">
                   Activity
                 </CardTitle>
-                <ShadcnBadge variant="secondary" className="ml-auto font-normal">
-                  {events.length}
-                </ShadcnBadge>
+                {events.length > 0 && (
+                  <ShadcnBadge variant="secondary" className="ml-auto font-normal">
+                    {events.length}
+                  </ShadcnBadge>
+                )}
               </CardHeader>
               <CardContent>
                 <EventFeed events={events} />
@@ -644,6 +664,6 @@ export function ProjectDetail() {
             </Card>
           </aside>
         </div>
-    </div>
+    </PageContainer>
   );
 }

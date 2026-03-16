@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, AlertTriangle, FolderKanban, ExternalLink } from 'lucide-react';
@@ -6,9 +6,12 @@ import { projectsApi } from '../api/projects';
 import { customersApi } from '../api/customers';
 import { ProjectStatusBadge, StageBadge, CustomerTypeBadge } from '../components/ui/StatusBadge';
 import { ProjectForm } from '../components/ui/ProjectForm';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { FilterBar } from '@/components/ui/FilterBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
 import {
   Table,
   TableBody,
@@ -27,6 +30,7 @@ import { cn } from '@/lib/utils';
 export function Projects() {
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const { setPageLayout } = usePageLayout();
   const companyId = searchParams.get('company');
   const projectId = searchParams.get('project');
 
@@ -75,66 +79,72 @@ export function Projects() {
         ? `Projects for ${customerMap.get(Number(companyId))?.company_name ?? 'Customer'}`
         : 'All Projects';
 
-  return (
-    <div className="p-6 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          {!loadingProjects && !isError && (projects?.length ?? 0) > 0 && (
-            <>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="filter-company" className="text-sm font-medium">
-                  Company
-                </Label>
-                <select
-                  id="filter-company"
-                  value={companyId ?? ''}
-                  onChange={(e) => setCompany(e.target.value)}
-                  aria-label="Filter by company"
-                  className={cn(
-                    'flex h-8 w-48 rounded-lg border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                  )}
-                >
-                  <option value="">All companies</option>
-                  {(customers ?? []).map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.company_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="filter-project" className="text-sm font-medium">
-                  Project
-                </Label>
-                <select
-                  id="filter-project"
-                  value={projectId ?? ''}
-                  onChange={(e) => setProject(e.target.value)}
-                  aria-label="Filter by project"
-                  disabled={projectsForProjectDropdown.length === 0}
-                  className={cn(
-                    'flex h-8 w-56 rounded-lg border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
-                  )}
-                >
-                  <option value="">All projects</option>
-                  {projectsForProjectDropdown.map((p) => {
-                    const customer = customerMap.get(p.customer_id);
-                    return (
-                      <option key={p.id} value={p.id}>
-                        {customer?.company_name ?? `Customer #${p.customer_id}`} — #{p.id}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-            </>
-          )}
-        </div>
-        <Button onClick={() => setModalOpen(true)}>
-          <Plus className="h-4 w-4" />
-          New Project
+  useEffect(() => {
+    setPageLayout({
+      title: 'Projects',
+      subtitle: 'Browse and filter onboarding projects.',
+      action: (
+        <Button size="sm" onClick={() => setModalOpen(true)} className="gap-1.5">
+          <Plus className="size-4" />
+          New project
         </Button>
-      </div>
+      ),
+    });
+  }, [setPageLayout]);
+
+  return (
+    <PageContainer className="flex flex-col gap-6">
+      <PageHeader
+        title="Projects"
+        subtitle="Browse and filter onboarding projects. Open a project to run simulations and manage tasks."
+        action={
+          <Button size="sm" onClick={() => setModalOpen(true)} className="gap-1.5">
+            <Plus className="size-4" />
+            New project
+          </Button>
+        }
+      />
+
+      {!loadingProjects && !isError && (projects?.length ?? 0) > 0 && (
+        <FilterBar>
+          <select
+            id="filter-company"
+            value={companyId ?? ''}
+            onChange={(e) => setCompany(e.target.value)}
+            aria-label="Filter by company"
+            className={cn(
+              'flex h-8 w-48 rounded-lg border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+            )}
+          >
+            <option value="">All companies</option>
+            {(customers ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.company_name}
+              </option>
+            ))}
+          </select>
+          <select
+            id="filter-project"
+            value={projectId ?? ''}
+            onChange={(e) => setProject(e.target.value)}
+            aria-label="Filter by project"
+            disabled={projectsForProjectDropdown.length === 0}
+            className={cn(
+              'flex h-8 w-56 rounded-lg border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+            )}
+          >
+            <option value="">All projects</option>
+            {projectsForProjectDropdown.map((p) => {
+              const customer = customerMap.get(p.customer_id);
+              return (
+                <option key={p.id} value={p.id}>
+                  {customer?.company_name ?? `Customer #${p.customer_id}`} — #{p.id}
+                </option>
+              );
+            })}
+          </select>
+        </FilterBar>
+      )}
 
       {loadingProjects && <PageLoading />}
 
@@ -251,6 +261,6 @@ export function Projects() {
           />
         </DialogContent>
       </Dialog>
-    </div>
-  )
+    </PageContainer>
+  );
 }

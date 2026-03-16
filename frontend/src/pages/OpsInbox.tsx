@@ -1,15 +1,19 @@
+import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
   AlertCircle,
-  CheckCircle2,
   Clock,
   FileWarning,
   ExternalLink,
   XCircle,
-  Filter,
+  FlaskConical,
 } from 'lucide-react';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { KpiCard } from '@/components/ui/KpiCard';
+import { FilterBar } from '@/components/ui/FilterBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +31,8 @@ import { ProjectStatusBadge, StageBadge, CustomerTypeBadge } from '@/components/
 import { projectsApi } from '../api/projects';
 import { customersApi } from '../api/customers';
 import { opsInboxApi } from '../api/opsInbox';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { OpsInboxItemFromApi, OpsInboxItemType } from '../types';
 
@@ -45,7 +51,17 @@ function itemTypeLabel(t: OpsInboxItemType): string {
   }
 }
 
-const KPI_ICON_CLASS = 'size-5 text-muted-foreground';
+const selectClass = cn(
+  'flex h-8 rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+);
+
+const STAGES: Array<{ value: string; label: string }> = [
+  { value: 'kickoff', label: 'Kickoff' },
+  { value: 'setup', label: 'Setup' },
+  { value: 'integration', label: 'Integration' },
+  { value: 'training', label: 'Training' },
+  { value: 'go_live', label: 'Go-Live' },
+];
 
 export function OpsInbox() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -54,6 +70,8 @@ export function OpsInbox() {
   const stageFilter = searchParams.get('stage') ?? '';
   const customerIdParam = searchParams.get('customer');
   const customerIdFilter = customerIdParam ? parseInt(customerIdParam, 10) : null;
+
+  const { setPageLayout } = usePageLayout();
 
   const { data: customers } = useQuery({
     queryKey: ['customers'],
@@ -95,14 +113,12 @@ export function OpsInbox() {
     needs_attention_now: 0,
   };
   const filteredItems: OpsInboxItemFromApi[] = data?.items ?? [];
-
-  const stages: Array<{ value: string; label: string }> = [
-    { value: 'kickoff', label: 'Kickoff' },
-    { value: 'setup', label: 'Setup' },
-    { value: 'integration', label: 'Integration' },
-    { value: 'training', label: 'Training' },
-    { value: 'go_live', label: 'Go-Live' },
-  ];
+  const urgentItems = filteredItems.filter(
+    (i) =>
+      i.item_type === 'overdue_task' ||
+      i.item_type === 'blocked_task' ||
+      (i.item_type === 'project_alert' && totals.needs_attention_now > 0)
+  ).slice(0, 5);
 
   function setFilter(key: string, value: string) {
     const next = new URLSearchParams(searchParams);
@@ -111,18 +127,31 @@ export function OpsInbox() {
     setSearchParams(next);
   }
 
-  const selectClass = cn(
-    'flex h-8 rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-  );
+  useEffect(() => {
+    setPageLayout({
+      title: 'Ops Inbox',
+      subtitle: 'Action queue: blocked tasks, overdue work, recommendations, and at-risk projects.',
+      action: (
+        <Link to="/simulator" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
+          <FlaskConical className="size-4" />
+          Simulator
+        </Link>
+      ),
+    });
+  }, [setPageLayout]);
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Ops Inbox</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Action queue: blocked tasks, overdue work, recommendations, and at-risk projects. Triage and open projects to act.
-        </p>
-      </div>
+    <PageContainer className="flex flex-col gap-6">
+      <PageHeader
+        title="Ops Inbox"
+        subtitle="Action queue: blocked tasks, overdue work, recommendations, and at-risk projects. Triage and open projects to act."
+        action={
+          <Link to="/simulator" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
+            <FlaskConical className="size-4" />
+            Open Simulator
+          </Link>
+        }
+      />
 
       {isError && (
         <ErrorAlert
@@ -135,119 +164,116 @@ export function OpsInbox() {
 
       {!isError && !isPending && (
         <>
-          <section aria-labelledby="inbox-stats-heading">
-            <h2 id="inbox-stats-heading" className="sr-only">Inbox summary</h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              <Card>
-                <CardContent className="flex flex-row items-start gap-4 pt-6">
-                  <div className="rounded-lg bg-muted p-2.5">
-                    <AlertTriangle className="size-5 text-destructive" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-muted-foreground">Needs attention now</p>
-                    <p className="mt-0.5 text-2xl font-semibold tabular-nums">{totals.needs_attention_now}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="flex flex-row items-start gap-4 pt-6">
-                  <div className="rounded-lg bg-muted p-2.5">
-                    <AlertCircle className={KPI_ICON_CLASS} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-muted-foreground">Blocked</p>
-                    <p className="mt-0.5 text-2xl font-semibold tabular-nums">{totals.blocked}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="flex flex-row items-start gap-4 pt-6">
-                  <div className="rounded-lg bg-muted p-2.5">
-                    <Clock className={KPI_ICON_CLASS} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-muted-foreground">Overdue</p>
-                    <p className="mt-0.5 text-2xl font-semibold tabular-nums">{totals.overdue}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="flex flex-row items-start gap-4 pt-6">
-                  <div className="rounded-lg bg-muted p-2.5">
-                    <FileWarning className={KPI_ICON_CLASS} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-muted-foreground">Recommendations</p>
-                    <p className="mt-0.5 text-2xl font-semibold tabular-nums">{totals.recommendations}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="flex flex-row items-start gap-4 pt-6">
-                  <div className="rounded-lg bg-muted p-2.5">
-                    <AlertTriangle className="size-5 text-destructive" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-muted-foreground">At-risk projects</p>
-                    <p className="mt-0.5 text-2xl font-semibold tabular-nums">{totals.at_risk_projects}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <section aria-labelledby="inbox-kpi-heading" className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <h2 id="inbox-kpi-heading" className="sr-only">
+              Inbox summary
+            </h2>
+            <KpiCard
+              label="Needs attention now"
+              value={totals.needs_attention_now}
+              icon={<AlertTriangle className="size-5 text-destructive" />}
+              iconClassName="bg-destructive/10"
+            />
+            <KpiCard
+              label="Blocked"
+              value={totals.blocked}
+              icon={<AlertCircle className="size-5 text-muted-foreground" />}
+            />
+            <KpiCard
+              label="Overdue"
+              value={totals.overdue}
+              icon={<Clock className="size-5 text-muted-foreground" />}
+            />
+            <KpiCard
+              label="Recommendations"
+              value={totals.recommendations}
+              icon={<FileWarning className="size-5 text-muted-foreground" />}
+            />
+            <KpiCard
+              label="At-risk projects"
+              value={totals.at_risk_projects}
+              icon={<AlertTriangle className="size-5 text-destructive" />}
+              iconClassName="bg-destructive/10"
+            />
           </section>
 
-          <section aria-labelledby="inbox-filters-heading">
-            <h2 id="inbox-filters-heading" className="sr-only">Filters</h2>
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <Filter className="h-3.5 w-3.5" /> Filter
-              </span>
-              <select
-                aria-label="Filter by type"
-                value={typeFilter}
-                onChange={(e) => setFilter('type', e.target.value)}
-                className={selectClass}
-              >
-                <option value="">All types</option>
-                <option value="blocked_task">Blocked</option>
-                <option value="overdue_task">Overdue</option>
-                <option value="recommendation">Recommendation</option>
-                <option value="project_alert">At risk</option>
-              </select>
-              <select
-                aria-label="Filter by stage"
-                value={stageFilter}
-                onChange={(e) => setFilter('stage', e.target.value)}
-                className={selectClass}
-              >
-                <option value="">All stages</option>
-                {stages.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                aria-label="Filter by customer"
-                value={customerIdFilter ?? ''}
-                onChange={(e) => setFilter('customer', e.target.value)}
-                className={selectClass}
-              >
-                <option value="">All customers</option>
-                {(customers ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.company_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </section>
+          <FilterBar>
+            <select
+              aria-label="Filter by type"
+              value={typeFilter}
+              onChange={(e) => setFilter('type', e.target.value)}
+              className={selectClass}
+            >
+              <option value="">All types</option>
+              <option value="blocked_task">Blocked</option>
+              <option value="overdue_task">Overdue</option>
+              <option value="recommendation">Recommendation</option>
+              <option value="project_alert">At risk</option>
+            </select>
+            <select
+              aria-label="Filter by stage"
+              value={stageFilter}
+              onChange={(e) => setFilter('stage', e.target.value)}
+              className={selectClass}
+            >
+              <option value="">All stages</option>
+              {STAGES.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Filter by customer"
+              value={customerIdFilter ?? ''}
+              onChange={(e) => setFilter('customer', e.target.value)}
+              className={selectClass}
+            >
+              <option value="">All customers</option>
+              {(customers ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.company_name}
+                </option>
+              ))}
+            </select>
+          </FilterBar>
 
-          <Card aria-labelledby="inbox-queue-heading">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b pb-4">
-              <CardTitle id="inbox-queue-heading" className="text-base">
-                Queue ({filteredItems.length})
-              </CardTitle>
+          {urgentItems.length > 0 && (
+            <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Priority</CardTitle>
+                <p className="text-xs text-muted-foreground">Items that may need immediate action</p>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ul className="space-y-2">
+                  {urgentItems.map((item) => {
+                    const projectName =
+                      item.project.name ?? item.customer?.company_name ?? `Project #${item.project.id}`;
+                    return (
+                      <li
+                        key={`${item.item_type}-${item.project.id}-${item.task?.id ?? item.recommendation?.id ?? 'alert'}`}
+                        className="flex items-center justify-between gap-4 text-sm"
+                      >
+                        <span className="font-medium">{itemTypeLabel(item.item_type)}</span>
+                        <span className="text-muted-foreground">{projectName}</span>
+                        <Link
+                          to={`/projects/${item.project.id}`}
+                          className="shrink-0 text-primary underline-offset-4 hover:underline"
+                        >
+                          Open
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader className="border-b pb-4">
+              <CardTitle className="text-base">Queue ({filteredItems.length})</CardTitle>
+              <p className="mt-0.5 text-xs text-muted-foreground">All inbox items. Open a project to act.</p>
             </CardHeader>
             <CardContent className="p-0">
               {filteredItems.length === 0 ? (
@@ -263,7 +289,7 @@ export function OpsInbox() {
                         ? 'Try changing or clearing filters to see more items.'
                         : 'All onboarding projects are on track. Check back later or run risk checks on projects.'
                     }
-                    icon={<CheckCircle2 className="h-12 w-12 text-muted-foreground" />}
+                    icon={<FileWarning className="size-12 text-muted-foreground" />}
                     action={
                       <Link to="/projects" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
                         View projects
@@ -333,18 +359,22 @@ export function OpsInbox() {
                             <ProjectStatusBadge status={item.project.status} />
                             {item.project.risk_flag && (
                               <AlertTriangle
-                                className="inline-block ml-1 h-3.5 w-3.5 text-destructive"
+                                className="ml-1 inline-block size-3.5 text-destructive"
                                 aria-label="At risk"
                               />
                             )}
                           </TableCell>
-                          <TableCell className="px-5 py-3 text-muted-foreground max-w-xs truncate" title={context}>
+                          <TableCell className="max-w-xs truncate px-5 py-3 text-muted-foreground" title={context}>
                             {context || '—'}
                           </TableCell>
                           <TableCell className="px-5 py-3 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              <Link to={`/projects/${item.project.id}`} className="text-sm font-medium text-primary underline-offset-4 hover:underline inline-flex items-center gap-1">
-                                Open project <ExternalLink className="h-3 w-3" />
+                              <Link
+                                to={`/projects/${item.project.id}`}
+                                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                              >
+                                Open project
+                                <ExternalLink className="size-3" />
                               </Link>
                               {item.item_type === 'recommendation' && item.recommendation && (
                                 <Button
@@ -360,7 +390,7 @@ export function OpsInbox() {
                                   className="text-muted-foreground"
                                   title="Dismiss recommendation"
                                 >
-                                  <XCircle className="h-3.5 w-3.5" />
+                                  <XCircle className="size-3.5" />
                                   Dismiss
                                 </Button>
                               )}
@@ -376,6 +406,6 @@ export function OpsInbox() {
           </Card>
         </>
       )}
-    </div>
-  )
+    </PageContainer>
+  );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Building2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -6,6 +6,9 @@ import { customersApi } from '../api/customers';
 import { projectsApi } from '../api/projects';
 import { CustomerTypeBadge } from '../components/ui/StatusBadge';
 import { CustomerForm } from '../components/ui/CustomerForm';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -25,6 +28,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 
 export function Customers() {
   const [isModalOpen, setModalOpen] = useState(false);
+  const { setPageLayout } = usePageLayout();
 
   const { data: customers, isPending, isError, refetch } = useQuery({
     queryKey: ['customers'],
@@ -44,15 +48,31 @@ export function Customers() {
     return forCustomer[0]?.id ?? null;
   }
 
-  return (
-    <div className="p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <span />
-        <Button onClick={() => setModalOpen(true)}>
-          <Plus className="h-4 w-4" />
-          New Customer
+  useEffect(() => {
+    setPageLayout({
+      title: 'Customers',
+      subtitle: 'Manage customer accounts and link to onboarding projects.',
+      action: (
+        <Button size="sm" onClick={() => setModalOpen(true)} className="gap-1.5">
+          <Plus className="size-4" />
+          New customer
         </Button>
-      </div>
+      ),
+    });
+  }, [setPageLayout]);
+
+  return (
+    <PageContainer className="flex flex-col gap-6">
+      <PageHeader
+        title="Customers"
+        subtitle="Manage customer accounts and link to onboarding projects."
+        action={
+          <Button size="sm" onClick={() => setModalOpen(true)} className="gap-1.5">
+            <Plus className="size-4" />
+            New customer
+          </Button>
+        }
+      />
 
       {isPending && <PageLoading />}
 
@@ -155,6 +175,6 @@ export function Customers() {
           />
         </DialogContent>
       </Dialog>
-    </div>
-  )
+    </PageContainer>
+  );
 }

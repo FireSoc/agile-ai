@@ -1,0 +1,9 @@
+---
+description: Commit message length and style for this project
+alwaysApply: true
+---
+
+# Commit Messages
+
+- Use a single line only. No bullet list or multi-line body.
+- Keep it short and concise, under 100 characters.

@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, Package, Search, MoreHorizontal, Eye } from 'lucide-react';
 import { playbooksApi } from '../api/playbooks';
 import { CustomerTypeBadge } from '../components/ui/StatusBadge';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -152,16 +155,22 @@ export function PlaybookInspector() {
     else setSortKey(key);
   };
 
+  const { setPageLayout } = usePageLayout();
+  useEffect(() => {
+    setPageLayout({
+      title: 'Playbooks',
+      subtitle: 'Onboarding playbooks by segment and their default stages and tasks.',
+    });
+  }, [setPageLayout]);
+
   if (isPending) return <PageLoading />;
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Playbook Inspector</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Onboarding playbooks by segment and their default stages and tasks.
-        </p>
-      </div>
+    <PageContainer className="flex flex-col gap-6">
+      <PageHeader
+        title="Playbooks"
+        subtitle="Onboarding playbooks by segment and their default stages and tasks."
+      />
 
       {isError && (
         <ErrorAlert message="Could not load playbooks." onRetry={() => refetch()} />
@@ -319,6 +328,6 @@ export function PlaybookInspector() {
           )}
         </SheetContent>
       </Sheet>
-    </div>
+    </PageContainer>
   );
 }

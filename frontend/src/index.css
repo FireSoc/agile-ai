@@ -17,6 +17,25 @@
   #root {
     @apply min-h-screen h-full;
   }
+  /* Layout scale: 16 | 24 | 32 | 48 | 64 */
+  :root {
+    --page-padding: 1.5rem;
+    --page-max-width: 80rem;
+    --section-gap: 1.5rem;
+    --card-padding: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    :root {
+      --page-padding: 1.5rem;
+      --section-gap: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    :root {
+      --page-padding: 2rem;
+      --section-gap: 2rem;
+    }
+  }
   :root {
     --background: oklch(0.98 0.002 260);
     --foreground: oklch(0.2 0.02 260);
@@ -94,6 +113,19 @@
 }
 
 @layer components {
+  .page-container {
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--page-padding);
+    padding-right: var(--page-padding);
+    padding-top: var(--page-padding);
+    padding-bottom: var(--page-padding);
+  }
+  .section-gap {
+    gap: var(--section-gap);
+  }
   /* Minimal input/label utilities for legacy form fragments (BranchComparePanel, SimulationTaskEditor). Prefer shadcn Input/Label elsewhere. */
   .input-legacy {
     @apply flex h-8 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
