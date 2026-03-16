@@ -1,6 +1,9 @@
-# Agile — Onboarding Ops Co-pilot
 
-![Agile logo](frontend/public/agile-logo.png)
+<div align="center">
+  <img src="frontend/public/agile-logo.png" alt="Agile logo" width="200" />
+</div>
+
+# Agile — Onboarding Ops Co-pilot
 
 An AI-assisted onboarding ops co-pilot that helps teams run and automate customer onboarding workflows: playbook-driven projects, risk and next-best actions, and a single place to see what needs attention.
 
