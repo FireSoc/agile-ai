@@ -9,12 +9,18 @@ from app.models.enums import CustomerType
 
 
 class Customer(Base):
-    """Customer account for onboarding (company_name, segment, onboarding health)."""
+    """Customer account for onboarding (company_name, segment, onboarding health).
+
+    ``owner_user_id`` references ``auth.users(id)`` — the FK exists in Postgres
+    but is not declared in the ORM metadata to avoid SQLAlchemy schema inspection
+    issues with the cross-schema ``auth`` schema.
+    """
 
     __tablename__ = "customers"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    owner_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
+    # NOT NULL; references auth.users(id) ON DELETE CASCADE (enforced in DB)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
     customer_type: Mapped[CustomerType] = mapped_column(
         Enum(CustomerType, values_callable=lambda x: [e.value for e in x]),

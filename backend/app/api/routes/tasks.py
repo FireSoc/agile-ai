@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
-from app.api.deps import get_db
+from app.api.deps import get_auth_db
 from app.core.auth import get_current_user
 from app.models.customer import Customer
 from app.models.onboarding_project import OnboardingProject
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 @router.post("/{task_id}/complete", response_model=TaskCompleteResponse)
 def mark_task_complete(
     task_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> TaskCompleteResponse:
     task = (
@@ -33,7 +33,7 @@ def mark_task_complete(
 
     # Verify the task's project belongs to the current user.
     project_owner = (
-        db.query(Customer.owner_id)
+        db.query(Customer.owner_user_id)
         .join(OnboardingProject, OnboardingProject.customer_id == Customer.id)
         .filter(OnboardingProject.id == task.project_id)
         .scalar()

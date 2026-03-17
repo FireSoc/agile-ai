@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
-from app.api.deps import get_db
+from app.api.deps import get_auth_db
 from app.core.auth import get_current_user
 from app.models.customer import Customer
 from app.models.onboarding_project import OnboardingProject
@@ -46,7 +46,7 @@ def _get_project_or_404(
             selectinload(OnboardingProject.risk_signals),
             selectinload(OnboardingProject.recommendations),
         )
-        .filter(OnboardingProject.id == project_id, Customer.owner_id == owner_id)
+        .filter(OnboardingProject.id == project_id, Customer.owner_user_id == owner_id)
         .first()
     )
     if not project:
@@ -59,12 +59,12 @@ def _get_project_or_404(
 @router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 def create_onboarding_project(
     payload: ProjectCreate,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> OnboardingProject:
     customer = (
         db.query(Customer)
-        .filter(Customer.id == payload.customer_id, Customer.owner_id == current_user)
+        .filter(Customer.id == payload.customer_id, Customer.owner_user_id == current_user)
         .first()
     )
     if not customer:
@@ -79,13 +79,13 @@ def create_onboarding_project(
 def list_projects(
     skip: int = 0,
     limit: int = 50,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> list[OnboardingProject]:
     return (
         db.query(OnboardingProject)
         .join(Customer, OnboardingProject.customer_id == Customer.id)
-        .filter(Customer.owner_id == current_user)
+        .filter(Customer.owner_user_id == current_user)
         .offset(skip)
         .limit(limit)
         .all()
@@ -95,7 +95,7 @@ def list_projects(
 @router.get("/{project_id}", response_model=ProjectDetail)
 def get_project(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> OnboardingProject:
     return _get_project_or_404(db, project_id, current_user)
@@ -104,7 +104,7 @@ def get_project(
 @router.get("/{project_id}/tasks", response_model=list[TaskRead])
 def list_project_tasks(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ):
     project = _get_project_or_404(db, project_id, current_user)
@@ -115,7 +115,7 @@ def list_project_tasks(
 def create_project_task(
     project_id: int,
     payload: TaskCreate,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ):
     """Create a task manually on a project."""
@@ -140,7 +140,7 @@ def create_project_task(
 @router.get("/{project_id}/events", response_model=list[OnboardingEventRead])
 def list_project_events(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ):
     project = _get_project_or_404(db, project_id, current_user)
@@ -150,7 +150,7 @@ def list_project_events(
 @router.get("/{project_id}/recommendations", response_model=list[RecommendationRead])
 def list_project_recommendations(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ):
     project = _get_project_or_404(db, project_id, current_user)
@@ -164,7 +164,7 @@ def list_project_recommendations(
 def dismiss_recommendation(
     project_id: int,
     recommendation_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ):
     project = _get_project_or_404(db, project_id, current_user)
@@ -189,7 +189,7 @@ def dismiss_recommendation(
 @router.post("/{project_id}/check-overdue", response_model=OverdueCheckResponse)
 def check_overdue(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> OverdueCheckResponse:
     project = _get_project_or_404(db, project_id, current_user)
@@ -209,7 +209,7 @@ def check_overdue(
 @router.get("/{project_id}/risk", response_model=RiskRead)
 def get_project_risk(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> RiskRead:
     project = _get_project_or_404(db, project_id, current_user)
@@ -225,7 +225,7 @@ def get_project_risk(
 @router.post("/{project_id}/risk/recalculate", response_model=RiskRead)
 def recalculate_project_risk(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> RiskRead:
     project = _get_project_or_404(db, project_id, current_user)
@@ -241,7 +241,7 @@ def recalculate_project_risk(
 @router.get("/{project_id}/summary", response_model=ProjectSummaryResponse)
 def get_project_summary(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> ProjectSummaryResponse:
     project = _get_project_or_404(db, project_id, current_user)
@@ -251,7 +251,7 @@ def get_project_summary(
 @router.get("/{project_id}/risk/ai-summary", response_model=RiskSummaryResponse)
 def get_project_risk_ai_summary(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> RiskSummaryResponse:
     """AI-generated short summary for ops from project risk and summary."""
@@ -294,7 +294,7 @@ def get_project_risk_ai_summary(
 @router.post("/{project_id}/advance-stage", response_model=dict)
 def advance_project_stage(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> dict:
     project = _get_project_or_404(db, project_id, current_user)
@@ -319,7 +319,7 @@ def advance_project_stage(
 @router.post("/{project_id}/check-risk", response_model=RiskCheckResponse)
 def check_risk(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> RiskCheckResponse:
     project = _get_project_or_404(db, project_id, current_user)
@@ -343,13 +343,13 @@ def check_risk(
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> None:
     project = (
         db.query(OnboardingProject)
         .join(Customer, OnboardingProject.customer_id == Customer.id)
-        .filter(OnboardingProject.id == project_id, Customer.owner_id == current_user)
+        .filter(OnboardingProject.id == project_id, Customer.owner_user_id == current_user)
         .first()
     )
     if not project:

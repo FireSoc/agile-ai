@@ -25,7 +25,7 @@ import uuid
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
-from app.api.deps import get_db
+from app.api.deps import get_auth_db
 from app.core.auth import get_current_user
 from app.models.customer import Customer
 from app.models.onboarding_project import OnboardingProject
@@ -88,7 +88,7 @@ def simulate_risk(payload: SimulationRequest) -> SimulationResponse:
 )
 def get_project_baseline_endpoint(
     project_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> ProjectBaselineResponse:
     """
@@ -102,7 +102,7 @@ def get_project_baseline_endpoint(
             selectinload(OnboardingProject.tasks),
             selectinload(OnboardingProject.customer),
         )
-        .filter(OnboardingProject.id == project_id, Customer.owner_id == current_user)
+        .filter(OnboardingProject.id == project_id, Customer.owner_user_id == current_user)
         .first()
     )
     if project is None:
@@ -122,7 +122,7 @@ def get_project_baseline_endpoint(
 def simulate_risk_from_project(
     project_id: int,
     assumptions: SimulationAssumptions = Body(default_factory=SimulationAssumptions),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> SimulationResponse:
     """
@@ -142,7 +142,7 @@ def simulate_risk_from_project(
             selectinload(OnboardingProject.tasks),
             selectinload(OnboardingProject.customer),
         )
-        .filter(OnboardingProject.id == project_id, Customer.owner_id == current_user)
+        .filter(OnboardingProject.id == project_id, Customer.owner_user_id == current_user)
         .first()
     )
 

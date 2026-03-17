@@ -9,12 +9,16 @@ from app.models.enums import CustomerType, DealStatus
 
 
 class CRMDeal(Base):
-    """Incoming won business from a CRM. Ingested when deal is marked Closed Won."""
+    """Incoming won business from a CRM. Ingested when deal is marked Closed Won.
+
+    ``owner_user_id`` references ``auth.users(id)`` — FK enforced in DB only.
+    """
 
     __tablename__ = "crm_deals"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    owner_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
+    # NOT NULL; references auth.users(id) ON DELETE CASCADE (enforced in DB)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     crm_source: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
     segment: Mapped[CustomerType] = mapped_column(

@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_auth_db
 from app.core.auth import get_current_user
 from app.schemas.deal import DealIngestPayload, DealRead
 from app.services.deal_ingestion_service import ingest_closed_won_deal
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/crm", tags=["CRM"])
 )
 def ingest_deal(
     payload: DealIngestPayload,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_auth_db),
     current_user: uuid.UUID = Depends(get_current_user),
 ) -> dict:
     """
@@ -33,7 +33,7 @@ def ingest_deal(
     try:
         deal, customer, project = ingest_closed_won_deal(
             db,
-            owner_id=current_user,
+            owner_user_id=current_user,
             crm_source=payload.crm_source,
             company_name=payload.company_name,
             segment=payload.segment,

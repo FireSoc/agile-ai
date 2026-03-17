@@ -20,8 +20,12 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_timeout_seconds: float = 10.0
 
-    # Supabase JWT secret (Supabase Dashboard → Settings → API → JWT Secret).
-    # Used to verify tokens sent by the frontend. Leave empty to disable auth enforcement.
+    # Supabase project URL (e.g. https://<ref>.supabase.co).
+    # Required for fetching the JWKS public key to verify ES256 tokens.
+    supabase_url: str | None = None
+
+    # Supabase JWT secret — only needed for older HS256-signed tokens.
+    # Newer Supabase projects use ES256 verified via JWKS; set SUPABASE_URL instead.
     supabase_jwt_secret: str | None = None
 
     class Config:

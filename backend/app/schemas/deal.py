@@ -24,7 +24,7 @@ class DealRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    owner_id: uuid.UUID | None
+    owner_user_id: uuid.UUID
     crm_source: str
     company_name: str
     segment: CustomerType

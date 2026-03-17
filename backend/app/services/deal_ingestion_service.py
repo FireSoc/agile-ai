@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app.models.crm_deal import CRMDeal
 from app.models.customer import Customer
 from app.models.enums import CustomerType, DealStatus, EventType, OnboardingStage, ProjectStatus
-from app.models.onboarding_playbook import OnboardingPlaybook
 from app.models.onboarding_project import OnboardingProject
 from app.services.event_service import log_event
 from app.services.playbook_selection_service import select_playbook
@@ -19,14 +18,17 @@ def _upsert_customer(
     db: Session,
     company_name: str,
     segment: CustomerType,
-    owner_id: uuid.UUID,
+    owner_user_id: uuid.UUID,
     implementation_owner: str | None = None,
     csm_owner: str | None = None,
 ) -> Customer:
-    """Find customer by (owner_id, company_name) or create new."""
+    """Find customer by (owner_user_id, company_name) or create new."""
     customer = (
         db.query(Customer)
-        .filter(Customer.owner_id == owner_id, Customer.company_name == company_name)
+        .filter(
+            Customer.owner_user_id == owner_user_id,
+            Customer.company_name == company_name,
+        )
         .first()
     )
     if customer:
@@ -36,7 +38,7 @@ def _upsert_customer(
         return customer
 
     customer = Customer(
-        owner_id=owner_id,
+        owner_user_id=owner_user_id,
         company_name=company_name,
         customer_type=segment,
         industry=None,
@@ -50,7 +52,7 @@ def _upsert_customer(
 def ingest_closed_won_deal(
     db: Session,
     *,
-    owner_id: uuid.UUID,
+    owner_user_id: uuid.UUID,
     crm_source: str,
     company_name: str,
     segment: CustomerType,
@@ -70,7 +72,7 @@ def ingest_closed_won_deal(
     products = products_purchased or []
 
     deal = CRMDeal(
-        owner_id=owner_id,
+        owner_user_id=owner_user_id,
         crm_source=crm_source,
         company_name=company_name,
         segment=segment,
@@ -86,7 +88,7 @@ def ingest_closed_won_deal(
     db.flush()
 
     customer = _upsert_customer(
-        db, company_name, segment, owner_id, implementation_owner, csm_owner
+        db, company_name, segment, owner_user_id, implementation_owner, csm_owner
     )
     db.flush()
 

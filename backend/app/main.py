@@ -58,6 +58,10 @@ def create_app() -> FastAPI:
     app.include_router(simulations.router)
     app.include_router(tasks.router)
 
+    # Register user bootstrap endpoint so the frontend can trigger it explicitly
+    from app.api.routes.bootstrap import router as bootstrap_router
+    app.include_router(bootstrap_router)
+
     return app
 
 

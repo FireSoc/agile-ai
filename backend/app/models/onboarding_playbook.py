@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, JSON, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, JSON, String, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -8,14 +9,19 @@ from app.models.enums import CustomerType
 
 
 class OnboardingPlaybook(Base):
-    """
-    Reusable onboarding blueprint. Defines default stages, tasks, branching and duration rules.
-    Used to generate onboarding projects from CRM deals.
+    """Reusable onboarding blueprint.
+
+    ``is_system_template=True`` marks server-seeded global playbooks.
+    ``owner_user_id`` is null for system templates and populated for
+    user-created custom playbooks (future capability).
     """
 
     __tablename__ = "onboarding_playbooks"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    is_system_template: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # null for system templates; FK to auth.users enforced in DB
+    owner_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     segment: Mapped[CustomerType] = mapped_column(
         Enum(CustomerType, values_callable=lambda x: [e.value for e in x]),

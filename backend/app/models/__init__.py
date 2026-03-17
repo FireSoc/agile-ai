@@ -16,6 +16,8 @@ from app.models.enums import (  # noqa: F401
 from app.models.onboarding_event import OnboardingEvent  # noqa: F401
 from app.models.onboarding_playbook import OnboardingPlaybook  # noqa: F401
 from app.models.onboarding_project import OnboardingProject  # noqa: F401
+from app.models.profile import Profile  # noqa: F401
 from app.models.recommendation import Recommendation  # noqa: F401
 from app.models.risk_signal import RiskSignal  # noqa: F401
 from app.models.task import Task  # noqa: F401
+from app.models.user_playbook_seed_audit import UserPlaybookSeedAudit  # noqa: F401

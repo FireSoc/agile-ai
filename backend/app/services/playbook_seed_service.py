@@ -1,4 +1,4 @@
-"""Internal playbook creation for seed scripts and startup seeding. Not exposed via API."""
+"""Global playbook catalog seeding and per-user bootstrap helpers."""
 
 from sqlalchemy.orm import Session
 
@@ -8,14 +8,19 @@ from app.schemas.playbook import PlaybookCreate
 
 
 def ensure_playbooks_seeded(db: Session) -> None:
-    """
-    Create each default playbook by name only if it does not already exist.
-    Idempotent; safe to call on every backend startup.
+    """Seed the global system playbook catalog on startup.
+
+    Idempotent: skips any playbook whose name already exists.  Safe to call on
+    every server startup.  All seeded playbooks are marked ``is_system_template=True``
+    and have no ``owner_user_id`` (they belong to the system, not any user).
     """
     for payload in PLAYBOOKS:
         existing = (
             db.query(OnboardingPlaybook)
-            .filter(OnboardingPlaybook.name == payload.name)
+            .filter(
+                OnboardingPlaybook.name == payload.name,
+                OnboardingPlaybook.is_system_template.is_(True),
+            )
             .first()
         )
         if existing:
@@ -26,11 +31,13 @@ def ensure_playbooks_seeded(db: Session) -> None:
 def create_playbook_from_payload(
     db: Session, payload: PlaybookCreate
 ) -> OnboardingPlaybook:
-    """
-    Create and persist an OnboardingPlaybook from a validated PlaybookCreate payload.
-    Used only by the seed script; playbooks are not created via the public API.
+    """Create and persist an OnboardingPlaybook from a validated PlaybookCreate payload.
+
+    Used by the seed service; playbooks are not created via the public API.
     """
     playbook = OnboardingPlaybook(
+        is_system_template=True,
+        owner_user_id=None,
         name=payload.name,
         segment=payload.segment,
         supported_products=payload.supported_products,

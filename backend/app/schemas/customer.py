@@ -17,7 +17,7 @@ class CustomerRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    owner_id: uuid.UUID | None
+    owner_user_id: uuid.UUID
     company_name: str
     customer_type: CustomerType
     industry: str | None
