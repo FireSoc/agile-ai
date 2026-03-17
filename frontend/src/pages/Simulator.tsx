@@ -502,13 +502,15 @@ export function Simulator() {
             </div>
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 h-8">
-                  <Settings2 className="h-3.5 w-3.5" />
-                  Assumptions ({assumptions.customer_delay_days ?? 1}d / {(assumptions.internal_delay_days ?? 0.5)}d)
-                  <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="outline" size="sm" className="gap-1.5 h-8">
+                    <Settings2 className="h-3.5 w-3.5" />
+                    Assumptions ({assumptions.customer_delay_days ?? 1}d / {(assumptions.internal_delay_days ?? 0.5)}d)
+                    <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+                  </Button>
+                }
+              />
               <DropdownMenuContent align="start" className="w-72 p-4">
                 <p className="text-xs font-medium text-muted-foreground mb-3">Delay assumptions (baseline)</p>
                 <AssumptionControls assumptions={assumptions} onChange={setAssumptions} />
