@@ -1,1 +1,0 @@
-{"sessionId":"21e26e","runId":"run1","hypothesisId":"H-A+H-B","location":"AuthContext.tsx:onAuthStateChange","message":"auth state change fired","data":{"event":"SIGNED_IN","hasSession":true,"hasToken":true,"userId":"16e503f3-b8e3-4686-98c0-f5ecd7172216"},"timestamp":1773769258460}

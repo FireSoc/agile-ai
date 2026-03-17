@@ -699,21 +699,6 @@ export function Simulator() {
                   </div>
                 </CardContent>
               </Card>
-
-              {singleResult.inbox_preview ? (
-                <Card>
-                  <CardContent className="pt-3 px-0">
-                    <div className="px-4">
-                      <SectionHeader title="Virtual inbox preview" description="How work lands in the ops inbox." />
-                      <div className="mt-4">
-                        <InboxPreview inbox={singleResult.inbox_preview} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="hidden xl:block" aria-hidden />
-              )}
             </div>
           )}
 

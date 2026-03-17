@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -42,6 +42,18 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('session_expired') === 'true') {
+        sessionStorage.removeItem('session_expired');
+        setSessionExpiredMessage('Your session expired. Please sign in again.');
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   async function handleEmailLogin(e: FormEvent) {
     e.preventDefault();
@@ -103,6 +115,12 @@ export function Login() {
             <AgileLogo size="md" className="size-7" />
             <span className="text-base font-semibold text-foreground">Agile</span>
           </div>
+
+          {sessionExpiredMessage && (
+            <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-foreground">
+              {sessionExpiredMessage}
+            </div>
+          )}
 
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Welcome back</h1>

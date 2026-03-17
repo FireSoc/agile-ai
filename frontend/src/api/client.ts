@@ -30,6 +30,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      await supabase.auth.signOut();
+      try {
+        sessionStorage.setItem('session_expired', 'true');
+      } catch {
+        // ignore if sessionStorage is unavailable
+      }
+      window.location.assign('/login');
+    }
     let message = `HTTP ${res.status}`;
     try {
       const body = await res.json();

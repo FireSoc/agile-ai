@@ -7,7 +7,6 @@ import { ProjectStatusBadge, StageBadge, CustomerTypeBadge } from '../components
 import { PageLoading } from '../components/ui/LoadingSpinner';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Topbar } from '../components/layout/Topbar';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export function AtRiskAccounts() {
@@ -29,10 +28,7 @@ export function AtRiskAccounts() {
   if (isPending) return <PageLoading />;
 
   return (
-    <div>
-      <Topbar />
-
-      <div className="px-6 py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
         <div>
           <h2 className="text-lg font-semibold text-foreground">At-Risk Accounts</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -132,7 +128,6 @@ export function AtRiskAccounts() {
             </CardContent>
           </Card>
         )}
-      </div>
     </div>
   );
 }

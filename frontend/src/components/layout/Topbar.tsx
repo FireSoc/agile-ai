@@ -1,4 +1,4 @@
-import { LogOut, MoreHorizontal } from 'lucide-react';
+import { LogOut, MoreHorizontal, PanelLeft, PanelLeftClose } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -12,7 +12,12 @@ import { usePageLayout } from '@/contexts/PageLayoutContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
-export function Topbar() {
+interface TopbarProps {
+  isSidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
+}
+
+export function Topbar({ isSidebarCollapsed, onToggleSidebar }: TopbarProps) {
   const { pageLayout } = usePageLayout();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -26,8 +31,19 @@ export function Topbar() {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b-[4px] border-border bg-background px-4 md:px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-4 md:px-6">
       <div className="min-w-0 flex-1 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className={cn(
+            'flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground',
+            'hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          )}
+          aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isSidebarCollapsed ? <PanelLeft className="size-5" aria-hidden /> : <PanelLeftClose className="size-5" aria-hidden />}
+        </button>
         {pageLayout.title ? (
           <>
             <h1 className="truncate text-lg font-semibold text-foreground">

@@ -10,11 +10,13 @@ import { Customers } from './pages/Customers';
 import { Projects } from './pages/Projects';
 import { ProjectsLanding } from './pages/ProjectsLanding';
 import { ProjectDetail } from './pages/ProjectDetail';
+import { ProjectTasks } from './pages/ProjectTasks';
 import { PlaybookInspector } from './pages/PlaybookInspector';
 import { CustomerPortalProject } from './pages/CustomerPortalProject';
 import { ImportDeal } from './pages/ImportDeal';
 import { Simulator } from './pages/Simulator';
 import { Pipeline } from './pages/Pipeline';
+import { Settings } from './pages/Settings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,11 +105,13 @@ export default function App() {
               <Route path="/customers" element={<Customers />} />
               <Route path="/projects" element={<ProjectsLanding />} />
               <Route path="/projects/list" element={<Projects />} />
+              <Route path="/projects/:id/tasks" element={<ProjectTasks />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
               <Route path="/playbooks" element={<PlaybookInspector />} />
               <Route path="/simulator" element={<Simulator />} />
               <Route path="/pipeline" element={<Pipeline />} />
               <Route path="/deals/import" element={<ImportDeal />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>

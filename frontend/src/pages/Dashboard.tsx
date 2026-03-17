@@ -8,7 +8,6 @@ import {
   ArrowRight,
   LayoutGrid,
   FlaskConical,
-  Lightbulb,
 } from 'lucide-react';
 import { projectsApi } from '../api/projects';
 import { customersApi } from '../api/customers';
@@ -159,21 +158,6 @@ export function Dashboard() {
   const completedTasks = aggregatedTasks.filter((t) => t.status === 'completed').length;
   const needsAttention = todoBuckets.overdue.length + (atRiskProjects > 0 ? 1 : 0);
 
-  const totalRecommendations = useMemo(
-    () =>
-      projectDetails.reduce(
-        (sum, d) => sum + (d.recommendations?.filter((r) => !r.dismissed).length ?? 0),
-        0
-      ),
-    [projectDetails]
-  );
-
-  const projectsWithRecommendations = useMemo(() => {
-    return projectDetails.filter(
-      (d) => (d.recommendations?.filter((r) => !r.dismissed).length ?? 0) > 0
-    );
-  }, [projectDetails]);
-
   useLayoutEffect(() => {
     setPageLayout({
       title: 'Overview',
@@ -214,15 +198,14 @@ export function Dashboard() {
         />
       )}
 
-      <section aria-labelledby="kpi-heading" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <section aria-labelledby="kpi-heading" className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <h2 id="kpi-heading" className="sr-only">
           North star metrics
         </h2>
         {[
           { label: 'Projects', value: `${completedProjects}/${totalProjects}`, icon: <FolderKanban className="size-5 text-muted-foreground" />, iconClassName: undefined },
           { label: 'Tasks', value: `${completedTasks}/${totalTasks}`, icon: <LayoutGrid className="size-5 text-muted-foreground" />, iconClassName: undefined },
-          { label: 'At risk', value: atRiskProjects, icon: <AlertTriangle className="size-5 text-destructive" />, iconClassName: 'bg-destructive/10' },
-          { label: 'Recommendations', value: totalRecommendations, icon: <Lightbulb className="size-5 text-muted-foreground" />, iconClassName: undefined },
+          { label: 'At risk', value: atRiskProjects, icon: <AlertTriangle className="size-5 text-destructive" />, iconClassName: 'rounded-lg bg-muted' },
         ].map((kpi, i) => (
           <div
             key={kpi.label}
@@ -381,41 +364,6 @@ export function Dashboard() {
           <ActionPanel title="Recent activity" description="Across projects">
             <EventFeed events={aggregatedEvents} maxItems={5} />
           </ActionPanel>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Lightbulb className="size-4 text-muted-foreground" />
-                Projects with recommendations
-                {totalRecommendations > 0 && (
-                  <span className="text-xs font-normal text-muted-foreground">
-                    ({totalRecommendations})
-                  </span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {projectsWithRecommendations.length === 0 ? (
-                <p className="py-2 text-sm text-muted-foreground">No open recommendations.</p>
-              ) : (
-                projectsWithRecommendations.map((detail) => {
-                  const project = projects?.find((p) => p.id === detail.id);
-                  const customer = customers?.find((c) => c.id === detail.customer_id);
-                  const name = project?.name ?? customer?.company_name ?? `Project #${detail.id}`;
-                  return (
-                    <Link
-                      key={detail.id}
-                      to={`/projects/${detail.id}`}
-                      className="flex items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-muted hover:text-foreground"
-                    >
-                      <span className="truncate">{name}</span>
-                      <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
-                    </Link>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader className="pb-2">
