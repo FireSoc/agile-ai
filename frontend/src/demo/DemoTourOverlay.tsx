@@ -113,7 +113,7 @@ export function DemoTourOverlay() {
   const location = useLocation();
   const navigate = useNavigate();
   const { checklistDismissed, stepsCompleted, markStepComplete, dismissChecklist } = useDemo();
-  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [_targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [boxRect, setBoxRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   /** When true, show thank-you step immediately after "Got it" on simulator output (avoids context-update timing). */
   const [showThankYouNow, setShowThankYouNow] = useState(false);
