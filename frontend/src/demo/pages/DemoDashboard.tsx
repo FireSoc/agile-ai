@@ -146,12 +146,6 @@ export function DemoDashboard() {
     setPageLayout({
       title: 'Overview',
       subtitle: 'Onboarding operations at a glance',
-      action: (
-        <Link to={DEMO_ROUTES.simulator} className={buttonVariants({ size: 'sm' }) + ' gap-1.5'}>
-          <FlaskConical className="size-4" />
-          Run simulation
-        </Link>
-      ),
     });
   }, [setPageLayout]);
 
@@ -164,12 +158,6 @@ export function DemoDashboard() {
         <PageHeader
           title="Onboarding operations"
           subtitle="Active projects, at-risk accounts, and quick access to the simulator."
-          action={
-          <Link to={DEMO_ROUTES.simulator} className={buttonVariants({ size: 'sm' }) + ' gap-1.5'} data-demo-target="dashboard-run-simulation">
-            <FlaskConical className="size-4" />
-            Run simulation
-          </Link>
-        }
         />
       </div>
 

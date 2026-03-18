@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { simulationsApi } from '../api/simulations';
 import { projectsApi } from '../api/projects';
+import { customersApi } from '../api/customers';
 import { aiApi } from '../api/ai';
 import { SimulationResultPanel } from '../components/ui/SimulationResultPanel';
 import { InboxPreview } from '../components/ui/InboxPreview';
@@ -311,6 +312,12 @@ export function Simulator() {
     queryFn: () => projectsApi.list(),
   });
 
+  const { data: customers } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => customersApi.list(),
+  });
+  const customerMap = new Map(customers?.map((c) => [c.id, c]) ?? []);
+
   // Part 3: Fetch baseline when Compare tab is active and a project is selected
   const { data: projectBaseline, isLoading: baselineLoading } = useQuery({
     queryKey: ['project-baseline', projectId],
@@ -378,6 +385,10 @@ export function Simulator() {
       : null;
 
   const selectedProject = projects.find((p) => p.id === projectId);
+  const selectedProjectLabel =
+    selectedProject
+      ? (selectedProject.name ?? `${customerMap.get(selectedProject.customer_id)?.company_name ?? 'Customer'} — Onboarding`)
+      : null;
   const canRun = projectId != null && selectedProject != null;
   const hasResult = singleResult != null || compareResult != null;
 
@@ -422,49 +433,21 @@ export function Simulator() {
     setPageLayout({
       title: 'Simulator',
       subtitle: 'Test timeline risk, see downstream impact, and review AI recommendations.',
-      action: (
-        <Button
-          onClick={runSimulation}
-          disabled={isPending || !canRun}
-          className="gap-1.5"
-        >
-          {isPending ? (
-            <LoadingSpinner size="sm" />
-          ) : tab === 'compare' ? (
-            <GitCompare className="size-4" />
-          ) : (
-            <Play className="size-4" />
-          )}
-          {tab === 'compare' ? 'Run compare' : 'Run simulation'}
-        </Button>
-      ),
     });
-  }, [setPageLayout, tab, canRun, isPending]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [setPageLayout]);
 
   return (
     <PageContainer className="flex flex-col gap-6">
       <PageHeader
         title="Simulator"
         subtitle="Test timeline risk, see downstream impact, and review AI recommendations."
-        action={
-          <Button onClick={runSimulation} disabled={isPending || !canRun} className="gap-1.5">
-            {isPending ? (
-              <LoadingSpinner size="sm" />
-            ) : tab === 'compare' ? (
-              <GitCompare className="size-4" />
-            ) : (
-              <Play className="size-4" />
-            )}
-            {tab === 'compare' ? 'Run compare' : 'Run simulation'}
-          </Button>
-        }
       />
 
       {/* Part 6: Assumptions used + project context */}
       {hasResult && selectedProject && lastRunAssumptions && (
         <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm">
           <span className="font-medium text-foreground">
-            Project: {selectedProject.name ?? `#${selectedProject.id}`}
+            Project: {selectedProjectLabel}
           </span>
           <span className="text-muted-foreground">
             {tab === 'simulate' ? 'Single run' : 'Comparison'}
@@ -478,7 +461,7 @@ export function Simulator() {
       {/* Compact control bar: project + assumptions + mode + run */}
       <Card className="border-border">
         <CardContent className="py-3 px-4">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 min-w-0">
               <Label htmlFor="sim-project" className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 Project
@@ -493,7 +476,7 @@ export function Simulator() {
                   <SelectTrigger
                     id="sim-project"
                     size="sm"
-                    className="min-w-[140px] max-w-[200px] w-full"
+                    className="min-w-[140px] w-[200px] max-w-[200px]"
                   >
                     <SelectValue placeholder="— Select —" />
                   </SelectTrigger>
@@ -501,7 +484,7 @@ export function Simulator() {
                     <SelectItem value="">— Select —</SelectItem>
                     {projects.map((p) => (
                       <SelectItem key={p.id} value={String(p.id)}>
-                        {p.name ?? `#${p.id}`}
+                        {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? 'Customer'} — Onboarding`}
                       </SelectItem>
                     ))}
                   </SelectContent>

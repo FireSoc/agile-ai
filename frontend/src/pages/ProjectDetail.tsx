@@ -228,13 +228,13 @@ export function ProjectDetail() {
               disabled={projectsForCompany.length === 0}
             >
               <SelectValue placeholder="Select project">
-                {project.name ?? (customer ? `${customer.company_name} — #${project.id}` : `Project #${project.id}`)}
+                {project.name ?? (customer ? `${customer.company_name} — Onboarding` : 'Onboarding')}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {projectsForCompany.map((p) => (
                 <SelectItem key={p.id} value={String(p.id)}>
-                  {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? `Customer #${p.customer_id}`} — #${p.id}`}
+                  {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? 'Customer'} — Onboarding`}
                 </SelectItem>
               ))}
             </SelectContent>

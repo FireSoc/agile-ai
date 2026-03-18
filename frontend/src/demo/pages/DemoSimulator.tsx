@@ -28,6 +28,7 @@ import {
   runDemoSimulationRequest,
   runDemoSimulationCompare,
   demoProjectsApi,
+  demoCustomersApi,
   demoQueryKeys,
 } from '@/demo/demoApi';
 import { SimulationResultPanel } from '@/components/ui/SimulationResultPanel';
@@ -135,6 +136,12 @@ export function DemoSimulator() {
     queryFn: () => demoProjectsApi.list(),
   });
 
+  const { data: customers } = useQuery({
+    queryKey: [...demoQueryKeys.customers],
+    queryFn: () => demoCustomersApi.list(),
+  });
+  const customerMap = new Map(customers?.map((c) => [c.id, c]) ?? []);
+
   const { data: projectBaseline, isLoading: baselineLoading } = useQuery({
     queryKey: ['demo', 'project-baseline', projectId],
     queryFn: () => getDemoProjectBaseline(projectId!),
@@ -192,6 +199,10 @@ export function DemoSimulator() {
       : null;
 
   const selectedProject = projects.find((p) => p.id === projectId);
+  const selectedProjectLabel =
+    selectedProject
+      ? (selectedProject.name ?? `${customerMap.get(selectedProject.customer_id)?.company_name ?? 'Customer'} — Onboarding`)
+      : null;
   const canRun = projectId != null && selectedProject != null;
   const hasResult = singleResult != null || compareResult != null;
 
@@ -227,54 +238,20 @@ export function DemoSimulator() {
     setPageLayout({
       title: 'Simulator',
       subtitle: 'Demo — run the full simulation lifecycle with demo projects (no login).',
-      action: (
-        <Button
-          onClick={runSimulation}
-          disabled={isPending || !canRun}
-          className="gap-1.5"
-          data-demo-target="simulator-run"
-        >
-          {isPending ? (
-            <LoadingSpinner size="sm" />
-          ) : tab === 'compare' ? (
-            <GitCompare className="size-4" />
-          ) : (
-            <Play className="size-4" />
-          )}
-          {tab === 'compare' ? 'Run compare' : 'Run simulation'}
-        </Button>
-      ),
     });
-  }, [setPageLayout, tab, canRun, isPending]);
+  }, [setPageLayout]);
 
   return (
     <PageContainer className="flex flex-col gap-6">
       <PageHeader
         title="Simulator"
         subtitle="Demo — run the full simulation lifecycle with demo projects (no login)."
-        action={
-          <Button
-            onClick={runSimulation}
-            disabled={isPending || !canRun}
-            className="gap-1.5"
-            data-demo-target="simulator-run"
-          >
-            {isPending ? (
-              <LoadingSpinner size="sm" />
-            ) : tab === 'compare' ? (
-              <GitCompare className="size-4" />
-            ) : (
-              <Play className="size-4" />
-            )}
-            {tab === 'compare' ? 'Run compare' : 'Run simulation'}
-          </Button>
-        }
       />
 
       {hasResult && selectedProject && lastRunAssumptions && (
         <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm">
           <span className="font-medium text-foreground">
-            Project: {selectedProject.name ?? `#${selectedProject.id}`}
+            Project: {selectedProjectLabel}
           </span>
           <span className="text-muted-foreground">
             {tab === 'simulate' ? 'Single run' : 'Comparison'}
@@ -287,7 +264,7 @@ export function DemoSimulator() {
 
       <Card className="border-border">
         <CardContent className="py-3 px-4">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 min-w-0">
               <Label htmlFor="demo-sim-project" className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 Project
@@ -299,14 +276,16 @@ export function DemoSimulator() {
                   value={projectId != null ? String(projectId) : ''}
                   onValueChange={(v) => handleProjectChange(v === '' ? null : Number(v))}
                 >
-                  <SelectTrigger id="demo-sim-project" size="sm" className="min-w-[140px] max-w-[200px] w-full">
-                    <SelectValue placeholder="— Select —" />
+                  <SelectTrigger id="demo-sim-project" size="sm" className="min-w-[140px] w-[200px] max-w-[200px]">
+                    <SelectValue placeholder="— Select —">
+                      {selectedProjectLabel ?? undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">— Select —</SelectItem>
                     {projects.map((p) => (
                       <SelectItem key={p.id} value={String(p.id)}>
-                        {p.name ?? `#${p.id}`}
+                        {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? 'Customer'} — Onboarding`}
                       </SelectItem>
                     ))}
                   </SelectContent>

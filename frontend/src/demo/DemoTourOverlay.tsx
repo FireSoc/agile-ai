@@ -211,11 +211,11 @@ export function DemoTourOverlay() {
     };
   }, [measure]);
 
-  // When simulatorOutput step is active but target isn't in DOM yet (user clicked Got it before running simulation),
-  // observe the DOM and call measure() as soon as simulator-results appears.
+  // When the current step's target isn't in DOM yet (e.g. dashboard while data loads, simulator before results),
+  // observe the DOM and call measure() as soon as the target appears.
   useEffect(() => {
-    if (step?.stepId !== 'simulatorOutput' || !showOverlay || boxRect !== null) return;
-    const selector = '[data-demo-target="simulator-results"]';
+    const selector = step?.targetSelector;
+    if (!selector || !showOverlay || boxRect !== null) return;
     if (document.querySelector(selector)) {
       measure();
       return;
@@ -228,7 +228,7 @@ export function DemoTourOverlay() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [step?.stepId, showOverlay, boxRect, measure]);
+  }, [step?.stepId, step?.targetSelector, showOverlay, boxRect, measure]);
 
   const handleGotIt = useCallback(() => {
     if (!step) return;

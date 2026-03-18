@@ -83,6 +83,13 @@ export function Projects() {
     : (filteredProjects ?? []);
 
   const projectsForProjectDropdown = filteredByCompany ?? [];
+  const selectedProjectForFilter = projectId
+    ? projectsForProjectDropdown.find((p) => p.id === Number(projectId))
+    : null;
+  const selectedProjectFilterLabel =
+    selectedProjectForFilter != null
+      ? (selectedProjectForFilter.name ?? `${customerMap.get(selectedProjectForFilter.customer_id)?.company_name ?? 'Customer'} — Onboarding`)
+      : null;
 
   function setCompany(value: string) {
     const next = new URLSearchParams(searchParams);
@@ -164,18 +171,17 @@ export function Projects() {
               aria-label="Filter by project"
               disabled={projectsForProjectDropdown.length === 0}
             >
-              <SelectValue placeholder="All projects" />
+              <SelectValue placeholder="All projects">
+                {selectedProjectFilterLabel ?? undefined}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All projects</SelectItem>
-              {projectsForProjectDropdown.map((p) => {
-                const customer = customerMap.get(p.customer_id);
-                return (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {customer?.company_name ?? `Customer #${p.customer_id}`} — #{p.id}
-                  </SelectItem>
-                );
-              })}
+              {projectsForProjectDropdown.map((p) => (
+                <SelectItem key={p.id} value={String(p.id)}>
+                  {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? 'Customer'} — Onboarding`}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <label className="flex items-center gap-2 text-sm cursor-pointer">

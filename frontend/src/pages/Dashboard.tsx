@@ -162,14 +162,6 @@ export function Dashboard() {
     setPageLayout({
       title: 'Overview',
       subtitle: 'Onboarding operations at a glance',
-      action: (
-        <div className="flex items-center gap-2">
-          <Link to="/simulator" className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5')}>
-            <FlaskConical className="size-4" />
-            Run simulation
-          </Link>
-        </div>
-      ),
     });
   }, [setPageLayout]);
 
@@ -181,14 +173,6 @@ export function Dashboard() {
       <PageHeader
         title="Onboarding operations"
         subtitle="Active projects, at-risk accounts, and quick access to the simulator."
-        action={
-          <div className="flex items-center gap-2">
-            <Link to="/simulator" className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5')}>
-              <FlaskConical className="size-4" />
-              Run simulation
-            </Link>
-          </div>
-        }
       />
 
       {errorProjects && (

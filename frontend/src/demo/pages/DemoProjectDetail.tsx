@@ -204,13 +204,13 @@ export function DemoProjectDetail() {
           <Select value={String(project.id)} onValueChange={(v) => handleProjectChange(Number(v))}>
             <SelectTrigger id="project-detail-project" size="sm" className="w-56 overflow-visible" aria-label="Switch project" disabled={projectsForCompany.length === 0}>
               <SelectValue placeholder="Select project">
-                {project.name ?? (customer ? `${customer.company_name} — #${project.id}` : `Project #${project.id}`)}
+                {project.name ?? (customer ? `${customer.company_name} — Onboarding` : 'Onboarding')}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {projectsForCompany.map((p) => (
                 <SelectItem key={p.id} value={String(p.id)}>
-                  {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? `Customer #${p.customer_id}`} — #${p.id}`}
+                  {p.name ?? `${customerMap.get(p.customer_id)?.company_name ?? 'Customer'} — Onboarding`}
                 </SelectItem>
               ))}
             </SelectContent>
