@@ -1,0 +1,360 @@
+import { useLayoutEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useQuery, useQueries } from '@tanstack/react-query';
+import {
+  FolderKanban,
+  AlertTriangle,
+  Users,
+  ArrowRight,
+  LayoutGrid,
+  FlaskConical,
+} from 'lucide-react';
+import { demoProjectsApi, demoCustomersApi, demoQueryKeys } from '@/demo/demoApi';
+import { DEMO_ROUTES } from '@/demo/demoSeedData';
+import { usePageLayout } from '@/contexts/PageLayoutContext';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { KpiCard } from '@/components/ui/KpiCard';
+import { ActionPanel } from '@/components/ui/ActionPanel';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Progress } from '@/components/ui/progress';
+import { buttonVariants } from '@/components/ui/button';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
+import { EventFeed } from '@/components/ui/EventFeed';
+import { RiskScoreBadge } from '@/components/ui/RiskScoreBadge';
+import { STAGE_LABELS, type Project, type Task, type OnboardingEvent, type ProjectDetail } from '@/types';
+
+const DASHBOARD_PROJECT_LIMIT = 10;
+
+interface TaskWithProject extends Task {
+  projectName: string;
+}
+
+function isOverdue(dateStr: string | null, status: Task['status']): boolean {
+  if (!dateStr || status === 'completed') return false;
+  return new Date(dateStr) < new Date(new Date().setHours(0, 0, 0, 0));
+}
+
+export function DemoDashboard() {
+  const [tasksFilter, setTasksFilter] = useState<'all' | 'mine'>('all');
+  const { setPageLayout } = usePageLayout();
+
+  const { data: projects, isPending: loadingProjects, isError: errorProjects, refetch: refetchProjects } = useQuery({
+    queryKey: demoQueryKeys.projects,
+    queryFn: demoProjectsApi.list,
+  });
+
+  const { data: customers, isPending: loadingCustomers } = useQuery({
+    queryKey: demoQueryKeys.customers,
+    queryFn: demoCustomersApi.list,
+  });
+
+  const projectIds = useMemo(() => (projects ?? []).slice(0, DASHBOARD_PROJECT_LIMIT).map((p) => p.id), [projects]);
+
+  const detailQueries = useQueries({
+    queries: projectIds.map((id) => ({
+      queryKey: demoQueryKeys.project(id),
+      queryFn: () => demoProjectsApi.get(id),
+      enabled: !!projects && projectIds.length > 0,
+    })),
+  });
+
+  const projectDetails = useMemo(() => {
+    return detailQueries
+      .filter((q) => q.data != null)
+      .map((q) => q.data as ProjectDetail);
+  }, [detailQueries]);
+
+  const { aggregatedTasks, aggregatedEvents, projectProgress } = useMemo(() => {
+    const tasks: TaskWithProject[] = [];
+    const events: OnboardingEvent[] = [];
+    const progress: Record<number, { completed: number; total: number }> = {};
+
+    for (const detail of projectDetails) {
+      const project = projects?.find((p) => p.id === detail.id);
+      const customer = customers?.find((c) => c.id === detail.customer_id);
+      const projectName = project?.name ?? customer?.company_name ?? `Project #${detail.id}`;
+
+      for (const t of detail.tasks ?? []) {
+        tasks.push({ ...t, projectName });
+      }
+      for (const e of detail.events ?? []) {
+        events.push(e);
+      }
+      const taskList = detail.tasks ?? [];
+      const total = taskList.length;
+      const completed = taskList.filter((t) => t.status === 'completed').length;
+      progress[detail.id] = { completed, total };
+    }
+
+    events.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+    return {
+      aggregatedTasks: tasks,
+      aggregatedEvents: events,
+      projectProgress: progress,
+    };
+  }, [projectDetails, projects, customers]);
+
+  const filteredTasks = useMemo(() => {
+    if (tasksFilter === 'mine') {
+      return aggregatedTasks.filter((t) => t.assigned_to != null && t.assigned_to !== '');
+    }
+    return aggregatedTasks;
+  }, [aggregatedTasks, tasksFilter]);
+
+  const orderedTasksForActions = useMemo(() => {
+    return [...filteredTasks].sort((a, b) => {
+      const aOverdue = isOverdue(a.due_date, a.status);
+      const bOverdue = isOverdue(b.due_date, b.status);
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+      const aBlocked = a.status === 'blocked';
+      const bBlocked = b.status === 'blocked';
+      if (aBlocked && !bBlocked) return -1;
+      if (!aBlocked && bBlocked) return 1;
+      if (!a.due_date && !b.due_date) return 0;
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+    });
+  }, [filteredTasks]);
+
+  const todoBuckets = useMemo(() => {
+    const incomplete = aggregatedTasks.filter((t) => t.status !== 'completed');
+    const overdue = incomplete.filter((t) => isOverdue(t.due_date, t.status));
+    return { overdue, all: incomplete };
+  }, [aggregatedTasks]);
+
+  const totalProjects = projects?.length ?? 0;
+  const completedProjects = projects?.filter((p) => p.status === 'completed').length ?? 0;
+  const atRiskProjects = projects?.filter((p) => p.status === 'at_risk' || p.risk_flag).length ?? 0;
+  const totalTasks = aggregatedTasks.length;
+  const completedTasks = aggregatedTasks.filter((t) => t.status === 'completed').length;
+  const needsAttention = todoBuckets.overdue.length + (atRiskProjects > 0 ? 1 : 0);
+
+  useLayoutEffect(() => {
+    setPageLayout({
+      title: 'Overview',
+      subtitle: 'Onboarding operations at a glance',
+      action: (
+        <Link to={DEMO_ROUTES.simulator} className={buttonVariants({ size: 'sm' }) + ' gap-1.5'}>
+          <FlaskConical className="size-4" />
+          Run simulation
+        </Link>
+      ),
+    });
+  }, [setPageLayout]);
+
+  const isLoadingDetails = detailQueries.some((q) => q.isPending);
+  if (loadingProjects || loadingCustomers) return <PageLoading />;
+
+  return (
+    <PageContainer className="page-container--compact flex flex-col section-gap gap-6">
+      <div data-demo-target="dashboard-welcome">
+        <PageHeader
+          title="Onboarding operations"
+          subtitle="Active projects, at-risk accounts, and quick access to the simulator."
+          action={
+          <Link to={DEMO_ROUTES.simulator} className={buttonVariants({ size: 'sm' }) + ' gap-1.5'} data-demo-target="dashboard-run-simulation">
+            <FlaskConical className="size-4" />
+            Run simulation
+          </Link>
+        }
+        />
+      </div>
+
+      {errorProjects && (
+        <p className="text-sm text-destructive">
+          Could not load demo data. <button type="button" onClick={() => refetchProjects()} className="underline">Retry</button>
+        </p>
+      )}
+
+      <section aria-labelledby="kpi-heading" className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <h2 id="kpi-heading" className="sr-only">
+          North star metrics
+        </h2>
+        {[
+          { label: 'Projects', value: `${completedProjects}/${totalProjects}`, icon: <FolderKanban className="size-5 text-muted-foreground" />, iconClassName: undefined },
+          { label: 'Tasks', value: `${completedTasks}/${totalTasks}`, icon: <LayoutGrid className="size-5 text-muted-foreground" />, iconClassName: undefined },
+          { label: 'At risk', value: atRiskProjects, icon: <AlertTriangle className="size-5 text-destructive" />, iconClassName: 'rounded-lg bg-muted' },
+        ].map((kpi, i) => (
+          <div key={kpi.label} className="animate-in fade-in-0 slide-in-from-bottom-2 duration-200" style={{ animationDelay: `${i * 50}ms` }}>
+            <KpiCard label={kpi.label} value={String(kpi.value)} icon={kpi.icon} iconClassName={kpi.iconClassName} />
+          </div>
+        ))}
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <ActionPanel
+            title="Next best actions"
+            description="Tasks and items that need attention"
+            action={
+              <Tabs value={tasksFilter} onValueChange={(v) => setTasksFilter(v as 'all' | 'mine')}>
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="mine">Mine</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            }
+          >
+            {needsAttention > 0 && (
+              <p className="mb-3 text-xs font-medium text-destructive">
+                {todoBuckets.overdue.length} overdue · {atRiskProjects} at-risk project{atRiskProjects !== 1 ? 's' : ''}
+              </p>
+            )}
+            {isLoadingDetails ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">Loading tasks…</p>
+            ) : filteredTasks.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">No tasks.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Task</TableHead>
+                    <TableHead>Stage</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Due</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orderedTasksForActions.slice(0, 8).map((task, index) => (
+                    <TableRow key={`${task.project_id}-${task.id}`} className="animate-in fade-in-0 slide-in-from-bottom-2 duration-200" style={{ animationDelay: `${Math.min(index * 40, 280)}ms` }}>
+                      <TableCell className="font-medium">{task.title}</TableCell>
+                      <TableCell>{STAGE_LABELS[task.stage]}</TableCell>
+                      <TableCell>
+                        <Link to={DEMO_ROUTES.projectDetail(task.project_id)} className="text-primary hover:underline">
+                          {task.projectName}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {task.due_date ? new Date(task.due_date).toLocaleDateString('en-US') : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </ActionPanel>
+
+          <Card data-demo-target="dashboard-projects">
+            <CardHeader className="border-b pb-4">
+              <CardTitle className="text-base">Projects</CardTitle>
+              <p className="mt-0.5 text-xs text-muted-foreground">Progress and go-live</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              {!projects?.length ? (
+                <div className="px-3 py-6 text-center text-sm text-muted-foreground">No projects in demo.</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Risk</TableHead>
+                      <TableHead>End date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(projects ?? []).map((project: Project, index: number) => {
+                      const customer = customers?.find((c) => c.id === project.customer_id);
+                      const name = project.name ?? customer?.company_name ?? `Project #${project.id}`;
+                      const prog = projectProgress[project.id];
+                      const pct = prog && prog.total > 0 ? Math.round((prog.completed / prog.total) * 100) : 0;
+                      const endDate = project.target_go_live_date ?? project.projected_go_live_date;
+                      return (
+                        <TableRow key={project.id} className="animate-in fade-in-0 slide-in-from-bottom-2 duration-200" style={{ animationDelay: `${Math.min(index * 40, 200)}ms` }}>
+                          <TableCell className="font-medium">
+                            <Link to={DEMO_ROUTES.projectDetail(project.id)} className="text-primary hover:underline">
+                              {name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex w-24 items-center gap-2">
+                              <Progress value={pct} className="h-2 flex-1" />
+                              <span className="text-xs tabular-nums">{pct}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <RiskScoreBadge score={project.risk_score ?? null} level={project.risk_level ?? undefined} />
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {endDate ? new Date(endDate).toLocaleDateString('en-US') : '—'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <ActionPanel title="Simulation" description="Test timeline risk and see AI insights" icon={<FlaskConical className="size-4" />}>
+            <p className="text-sm text-muted-foreground">
+              Run a simulation to see how delays and assumptions affect go-live and risk.
+            </p>
+            <Link to={DEMO_ROUTES.simulator} className={buttonVariants({ size: 'sm' }) + ' mt-3 flex w-full gap-1.5'}>
+              Open simulator
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </ActionPanel>
+
+          <ActionPanel title="Recent activity" description="Across projects">
+            <EventFeed events={aggregatedEvents} maxItems={5} />
+          </ActionPanel>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Quick links</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Link
+                to={DEMO_ROUTES.customers}
+                className="flex w-full items-center justify-between rounded-lg border border-input bg-background px-4 py-3 text-sm font-medium hover:bg-muted hover:text-foreground"
+              >
+                <span className="flex items-center gap-2.5">
+                  <Users className="size-4 text-muted-foreground" />
+                  Customers
+                </span>
+                <ArrowRight className="size-3.5 text-muted-foreground" />
+              </Link>
+              <Link
+                to={DEMO_ROUTES.projects}
+                className="flex w-full items-center justify-between rounded-lg border border-input bg-background px-4 py-3 text-sm font-medium hover:bg-muted hover:text-foreground"
+              >
+                <span className="flex items-center gap-2.5">
+                  <FolderKanban className="size-4 text-muted-foreground" />
+                  Projects
+                </span>
+                <ArrowRight className="size-3.5 text-muted-foreground" />
+              </Link>
+              {atRiskProjects > 0 && (
+                <Link
+                  to={DEMO_ROUTES.projects}
+                  className="mt-2 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive"
+                >
+                  <AlertTriangle className="size-4 shrink-0" />
+                  {atRiskProjects} at risk — View projects
+                  <ArrowRight className="size-3.5 ml-auto" />
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </PageContainer>
+  );
+}

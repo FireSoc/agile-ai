@@ -1,6 +1,6 @@
-# Agile — Onboarding Workflow Engine (Backend)
+# Agile — Onboarding Ops Co-pilot (Backend)
 
-A production-style FastAPI backend for automating customer onboarding workflows. Agile automatically creates tasks, assigns owners, tracks stage progression, sends reminder events, and flags stalled projects.
+FastAPI backend for the Agile onboarding ops co-pilot. Handles customers, projects, tasks, workflow templates (playbooks), risk evaluation, reminders, and AI summaries. See the root **README.md** for project overview and running the full stack.
 
 ---
 
@@ -24,37 +24,43 @@ backend/
 ├── app/
 │   ├── main.py                 # FastAPI app factory + router wiring
 │   ├── core/
-│   │   └── config.py           # App settings (env-overridable)
+│   │   ├── config.py           # App settings (env-overridable)
+│   │   └── auth.py             # Auth helpers
 │   ├── db/
 │   │   ├── base.py             # SQLAlchemy DeclarativeBase
 │   │   └── session.py          # Engine, SessionLocal, init_db()
 │   ├── models/
-│   │   ├── enums.py            # All domain enums + STAGE_ORDER
-│   │   ├── customer.py
-│   │   ├── onboarding_project.py
-│   │   ├── task.py
-│   │   ├── workflow_template.py
-│   │   └── workflow_event.py
+│   │   ├── enums.py            # Domain enums + STAGE_ORDER
+│   │   ├── customer.py, onboarding_project.py, task.py
+│   │   ├── onboarding_playbook.py, onboarding_event.py
+│   │   ├── risk_signal.py, recommendation.py, profile.py
+│   │   ├── crm_deal.py, user_playbook_seed_audit.py
+│   │   └── ...
 │   ├── schemas/
-│   │   ├── customer.py
-│   │   ├── project.py
-│   │   ├── task.py
-│   │   ├── workflow_event.py
-│   │   └── seed.py
+│   │   ├── customer.py, project.py, task.py
+│   │   ├── playbook.py, playbook_payload.py, onboarding_event.py
+│   │   ├── simulation.py, ai.py, deal.py, recommendation.py, risk_signal.py
+│   │   └── ...
+│   ├── data/
+│   │   └── playbook_seed_data.py  # Default playbook definitions
 │   ├── services/
-│   │   ├── event_service.py    # Central event logger
-│   │   ├── workflow_service.py # Template selection, task gen, stage progression
-│   │   ├── task_service.py     # Task completion + gate trigger
-│   │   ├── reminder_service.py # Overdue detection + reminder events
-│   │   ├── risk_service.py     # Risk evaluation + flagging
-│   │   └── seed_service.py     # Default templates + sample data
+│   │   ├── event_service.py, workflow_service.py, task_service.py
+│   │   ├── reminder_service.py, risk_service.py, risk_scoring_service.py
+│   │   ├── playbook_seed_service.py, playbook_selection_service.py
+│   │   ├── stage_gate_service.py, stage_slippage_service.py
+│   │   ├── simulation_service.py, ai_service.py, openai_service.py
+│   │   ├── user_bootstrap_service.py, project_generation_service.py
+│   │   ├── deal_ingestion_service.py, blocker_detection_service.py
+│   │   ├── recommendation_service.py, summary_service.py
+│   │   └── ...
 │   └── api/
-│       ├── deps.py             # DB session dependency
+│       ├── deps.py             # DB session + auth dependencies
 │       └── routes/
-│           ├── customers.py
-│           ├── projects.py
-│           ├── tasks.py
-│           └── seed.py
+│           ├── customers.py, projects.py, tasks.py
+│           ├── playbooks.py, bootstrap.py
+│           ├── simulations.py, ai.py
+│           ├── accounts.py, crm.py, customer_portal.py
+│           └── ...
 └── requirements.txt
 ```
 

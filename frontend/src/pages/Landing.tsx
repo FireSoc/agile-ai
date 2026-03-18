@@ -532,6 +532,13 @@ export function Landing() {
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
+                to="/demo"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-300 bg-indigo-500/20 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500/30"
+              >
+                <Play className="size-4" aria-hidden />
+                Try interactive demo
+              </Link>
+              <Link
                 to="/signup"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-indigo-900 shadow transition-colors hover:bg-white/90"
               >
@@ -743,6 +750,7 @@ export function Landing() {
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-foreground">Product</p>
                 {[
+                  { label: 'Try demo', to: '/demo' },
                   { label: 'Dashboard', to: '/dashboard' },
                   { label: 'Projects', to: '/projects' },
                   { label: 'Simulator', to: '/simulator' },

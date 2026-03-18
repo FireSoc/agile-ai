@@ -256,9 +256,9 @@ export function ProjectDetail() {
         </Card>
       )}
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_minmax(280px,360px)]">
-          {/* Main column: tasks first, then project at a glance */}
-          <div className="flex min-w-0 flex-col gap-6">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main column */}
+          <div className="space-y-6 lg:col-span-2">
             <section aria-labelledby="tasks-cta-heading">
               <Card className="border-primary/20">
                 <CardHeader className="flex flex-row items-center justify-between gap-4">
@@ -336,12 +336,45 @@ export function ProjectDetail() {
                 </CardContent>
               </Card>
             </section>
+
+            <section aria-labelledby="ai-risk-summary-heading">
+              <Card aria-labelledby="ai-risk-summary-heading">
+                <CardHeader className="pb-2">
+                  <CardTitle id="ai-risk-summary-heading" className="text-sm flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    AI risk summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="w-full justify-center gap-1.5 sm:w-auto"
+                    onClick={() => riskSummaryMutation.mutate()}
+                    disabled={riskSummaryMutation.isPending}
+                  >
+                    {riskSummaryMutation.isPending ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    Generate
+                  </Button>
+                  {riskSummaryMutation.isError && (
+                    <p className="text-sm text-destructive">Could not load.</p>
+                  )}
+                  {riskSummaryMutation.data?.risk_summary && (
+                    <p className="text-sm text-foreground whitespace-normal">{riskSummaryMutation.data.risk_summary}</p>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
           </div>
 
-          <aside className="space-y-4 overflow-visible">
-            <div className="space-y-4 overflow-y-auto xl:max-h-[calc(100vh-8rem)]">
+          <div className="space-y-6">
             {(project.risk_flag || risk != null || (riskSignals?.length ?? 0) > 0) && (
-              <Card className="overflow-visible border-destructive/30 bg-destructive/5" aria-labelledby="risk-heading">
+              <Card className="border-primary/20" aria-labelledby="risk-heading">
                 <CardHeader className="pb-2">
                   <CardTitle id="risk-heading" className="text-sm flex items-center gap-2">
                     <ShieldAlert className="h-4 w-4 text-destructive" />
@@ -375,7 +408,7 @@ export function ProjectDetail() {
             )}
 
             {blockedTasks.length > 0 && (
-              <Card className="overflow-visible border-amber-200 bg-amber-50/30" aria-labelledby="blockers-heading">
+              <Card className="border-amber-200 bg-amber-50/30" aria-labelledby="blockers-heading">
                 <CardHeader className="pb-2">
                   <CardTitle id="blockers-heading" className="text-sm flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -396,7 +429,7 @@ export function ProjectDetail() {
             )}
 
             {(project.next_best_action || recommendations.length > 0) && (
-              <Card className="overflow-visible" aria-labelledby="next-heading">
+              <Card aria-labelledby="next-heading">
                 <CardHeader className="pb-2">
                   <CardTitle id="next-heading" className="text-sm flex items-center gap-2">
                     <Lightbulb className="h-4 w-4 text-primary" />
@@ -418,7 +451,7 @@ export function ProjectDetail() {
               </Card>
             )}
 
-            <Card className="overflow-visible" aria-labelledby="sidebar-actions">
+            <Card aria-labelledby="sidebar-actions">
               <CardHeader className="pb-2">
                 <CardTitle id="sidebar-actions" className="text-sm">Actions</CardTitle>
               </CardHeader>
@@ -449,7 +482,7 @@ export function ProjectDetail() {
               </CardContent>
             </Card>
 
-            <Card className="overflow-visible" aria-labelledby="events-heading">
+            <Card aria-labelledby="events-heading">
               <CardHeader className="flex flex-row items-center gap-2 border-b pb-2">
                 <Activity className="h-4 w-4 text-muted-foreground" aria-hidden />
                 <CardTitle id="events-heading" className="text-sm">
@@ -466,39 +499,7 @@ export function ProjectDetail() {
               </CardContent>
             </Card>
 
-            <Card aria-labelledby="ai-risk-summary-heading" className="overflow-visible xl:min-w-0">
-              <CardHeader className="pb-2">
-                <CardTitle id="ai-risk-summary-heading" className="text-sm flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  AI risk summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="w-full justify-center gap-1.5"
-                  onClick={() => riskSummaryMutation.mutate()}
-                  disabled={riskSummaryMutation.isPending}
-                >
-                  {riskSummaryMutation.isPending ? (
-                    <LoadingSpinner size="sm" />
-                  ) : (
-                    <Sparkles className="h-3.5 w-3.5" />
-                  )}
-                  Generate
-                </Button>
-                {riskSummaryMutation.isError && (
-                  <p className="text-sm text-destructive">Could not load.</p>
-                )}
-                {riskSummaryMutation.data?.risk_summary && (
-                  <p className="text-sm text-foreground whitespace-normal">{riskSummaryMutation.data.risk_summary}</p>
-                )}
-              </CardContent>
-            </Card>
-            </div>
-          </aside>
+          </div>
         </div>
     </PageContainer>
   );

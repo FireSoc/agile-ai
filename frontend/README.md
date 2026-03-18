@@ -1,6 +1,6 @@
-# Agile — Decision Sandbox (Frontend)
+# Agile — Onboarding Ops Co-pilot (Frontend)
 
-A decision-support sandbox for workflow automation. Built with React 19, Vite, TypeScript, Tailwind CSS, TanStack Query, and React Router v7.
+React SPA for the Agile onboarding ops co-pilot: landing, auth (Supabase), public demo at `/demo`, and signed-in app (dashboard, projects, playbooks, simulator, pipeline). Built with React 19, Vite, TypeScript, Tailwind CSS, TanStack Query, and React Router v7.
 
 ---
 
@@ -29,13 +29,14 @@ The `package.json` lives inside `frontend/`. Running `npm run dev` from the repo
 
 ### 1. Start the backend
 
+From repo root, see **Running locally** in the root `README.md`. In short:
+
 ```bash
-# from repo root
 cd backend
-source venv/bin/activate
-python main.py
-# Backend runs at http://127.0.0.1:8000
-# Swagger docs at http://127.0.0.1:8000/docs
+source venv/bin/activate   # after creating venv and pip install -r requirements.txt
+alembic upgrade head
+uvicorn app.main:app --reload
+# Backend runs at http://127.0.0.1:8000 — docs at http://127.0.0.1:8000/docs
 ```
 
 ### 2. Start the frontend
@@ -58,67 +59,70 @@ curl -X POST http://127.0.0.1:8000/seed
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 frontend/src/
-├── api/
-│   ├── client.ts          # Base fetch wrapper + ApiError
-│   ├── customers.ts
-│   ├── projects.ts
-│   ├── tasks.ts
-│   ├── seed.ts
-│   └── simulations.ts     # v2 simulation + branch compare endpoints
+├── api/                   # Backend API clients
+│   ├── client.ts
+│   ├── customers.ts, projects.ts, tasks.ts, seed.ts
+│   ├── playbooks.ts, simulations.ts, ai.ts
+│   ├── portal.ts, crm.ts, accounts.ts
+│   └── ...
+├── demo/                  # Public /demo — stateless seeded workspace
+│   ├── DemoProvider.tsx, DemoLayout.tsx, DemoSidebar.tsx
+│   ├── DemoChecklist.tsx, DemoTourOverlay.tsx, DemoPromptBanner.tsx
+│   ├── demoApi.ts, demoStore.ts, demoSeedData.ts
+│   └── pages/             # DemoDashboard, DemoProjects*, DemoProjectDetail, etc.
+├── contexts/
+│   └── AuthContext.tsx    # Supabase auth
+├── lib/
+│   ├── supabase.ts
+│   └── utils.ts
 ├── types/
-│   └── index.ts           # TypeScript types (backend + simulation v2)
+│   └── index.ts
 ├── components/
-│   ├── layout/
-│   │   ├── AppLayout.tsx
-│   │   ├── Sidebar.tsx
-│   │   └── Topbar.tsx
-│   └── ui/
-│       ├── StatusBadge.tsx
-│       ├── StatCard.tsx
-│       ├── StageProgress.tsx
-│       ├── EventFeed.tsx
-│       ├── Modal.tsx
-│       ├── CustomerForm.tsx
-│       ├── ProjectForm.tsx
-│       ├── EmptyState.tsx
-│       ├── LoadingSpinner.tsx
-│       ├── ErrorAlert.tsx
-│       ├── SimulationTaskEditor.tsx  # v2 task input table
-│       ├── SimulationResultPanel.tsx # risk band cards + fallbacks
-│       ├── InboxPreview.tsx          # ephemeral virtual inbox
-│       ├── BranchComparePanel.tsx    # branch delta comparison
-│       └── TimelineView.tsx          # chronological deadline timeline
+│   ├── layout/            # AppLayout, Sidebar, Topbar, PageContainer, etc.
+│   └── ui/                # StatusBadge, StageProgress, EventFeed, forms, simulation panels, etc.
 └── pages/
-    ├── Dashboard.tsx
-    ├── Customers.tsx
-    ├── Projects.tsx
-    ├── ProjectDetail.tsx
-    ├── Simulator.tsx      # Decision sandbox main page
-    └── Timeline.tsx       # Lightweight deadline timeline
+    ├── Landing.tsx, Login.tsx, Signup.tsx
+    ├── Dashboard.tsx, Customers.tsx, ProjectsLanding.tsx, Projects.tsx
+    ├── ProjectDetail.tsx, ProjectTasks.tsx
+    ├── PlaybookInspector.tsx, Simulator.tsx, Pipeline.tsx
+    ├── ImportDeal.tsx, CustomerPortalProject.tsx, Settings.tsx
+    └── ...
 ```
 
 ---
 
-## Pages
+## Routes
 
 | Route | Description |
-|---|---|
-| `/dashboard` | Overview stats, recent projects, quick links |
-| `/customers` | Customer list + create customer modal |
-| `/projects` | Project table + create project modal |
-| `/projects/:id` | Project detail — tasks, stage progress, event feed |
-| `/simulator` | **Decision sandbox** — define tasks, run simulation, compare branches, view inbox |
-| `/timeline` | **Deadline timeline** — chronological task milestones with risk badges |
+|-------|-------------|
+| `/` | Landing; link to **Try interactive demo** and sign-in |
+| `/login`, `/signup` | Auth (Supabase) |
+| `/portal/projects/:id` | Customer portal (shareable, no auth) |
+| **Demo** (no auth) | |
+| `/demo` | Demo layout; redirects to `/demo/dashboard` |
+| `/demo/dashboard` | Demo overview |
+| `/demo/projects`, `/demo/projects/:id`, `/demo/projects/:id/tasks` | Demo projects |
+| `/demo/customers`, `/demo/simulator`, `/demo/playbooks` | Demo customers, simulator, playbooks |
+| **App** (signed-in) | |
+| `/dashboard` | Overview, seed action, quick links |
+| `/customers` | Customer list + create |
+| `/projects`, `/projects/list` | Projects landing and list |
+| `/projects/:id`, `/projects/:id/tasks` | Project detail and tasks |
+| `/playbooks` | Playbook inspector |
+| `/simulator` | Decision sandbox — tasks, simulation, branch compare |
+| `/pipeline` | Pipeline view |
+| `/deals/import` | Import deal |
+| `/settings` | Settings |
 
 ---
 
-## Decision Sandbox Usage
+## Simulator (decision sandbox)
 
-The simulator lets you define an ad-hoc workflow, score its risk without any live customer data, and compare baseline vs alternative scenarios.
+The **Simulator** (`/simulator` or `/demo/simulator`) lets you define an ad-hoc workflow, score its risk without any live customer data, and compare baseline vs alternative scenarios.
 
 ### Quick demo (your March 19/22/24 example)
 

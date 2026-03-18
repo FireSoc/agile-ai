@@ -5,13 +5,10 @@ import {
   Users,
   FolderKanban,
   BookOpen,
-  FileDown,
   FlaskConical,
   ChevronDown,
   ChevronRight,
   Wrench,
-  Columns2,
-  Settings,
   PanelLeftClose,
   PanelLeft,
 } from 'lucide-react';
@@ -23,23 +20,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import { DEMO_ROUTES } from '@/demo/demoSeedData';
 import { cn } from '@/lib/utils';
 
 const CORE_NAV = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/simulator', icon: FlaskConical, label: 'Simulator' },
+  { to: DEMO_ROUTES.dashboard, icon: LayoutDashboard, label: 'Dashboard' },
+  { to: DEMO_ROUTES.simulator, icon: FlaskConical, label: 'Simulator' },
 ];
 
 const WORKSPACE_NAV = [
-  { to: '/projects', icon: FolderKanban, label: 'Projects' },
-  { to: '/pipeline', icon: Columns2, label: 'Pipeline' },
-  { to: '/customers', icon: Users, label: 'Customers' },
+  { to: DEMO_ROUTES.projects, icon: FolderKanban, label: 'Projects' },
+  { to: DEMO_ROUTES.customers, icon: Users, label: 'Customers' },
 ];
 
-const TOOLS_NAV = [
-  { to: '/playbooks', icon: BookOpen, label: 'Playbooks' },
-  { to: '/deals/import', icon: FileDown, label: 'Import deal' },
-];
+const TOOLS_NAV = [{ to: DEMO_ROUTES.playbooks, icon: BookOpen, label: 'Playbooks' }];
 
 const toolsPaths = TOOLS_NAV.map(({ to }) => to);
 
@@ -95,22 +89,18 @@ function NavGroup({
   );
 }
 
-interface SidebarProps {
+interface DemoSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 }
 
-export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
+export function DemoSidebar({ isCollapsed, onToggleCollapse }: DemoSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [toolsOpen, setToolsOpen] = useState(() => isToolsActive(location.pathname));
   const expanded = toolsOpen || isToolsActive(location.pathname);
 
   const handleNavClick = (to: string) => {
-    if (location.pathname === '/simulator' && to !== '/simulator') {
-      window.location.assign(to);
-      return;
-    }
     navigate(to);
   };
 
@@ -123,7 +113,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
         'h-full md:h-[calc(100vh-1rem)] md:my-2 md:mr-2 md:shadow-sm',
         isCollapsed ? 'md:ml-0 md:rounded-l-none md:rounded-r-xl' : 'md:ml-2 md:rounded-xl'
       )}
-      aria-label="Main navigation"
+      aria-label="Demo navigation"
     >
       <div
         className={cn(
@@ -141,7 +131,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
           )}
         >
           <p className="text-sm font-semibold leading-none">Agile</p>
-          <p className="mt-0.5 text-xs text-[var(--sidebar-foreground)]/80 leading-none">Onboarding</p>
+          <p className="mt-0.5 text-xs text-[var(--sidebar-foreground)]/80 leading-none">Demo</p>
         </div>
       </div>
       <Separator className="bg-[var(--sidebar-border)]" />
@@ -192,7 +182,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                     : 'text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/20 hover:text-[var(--sidebar-foreground)]'
                 )}
                 aria-expanded={expanded}
-                aria-controls="tools-nav"
+                aria-controls="demo-tools-nav"
               >
                 <span className="flex items-center gap-2.5">
                   <Wrench className="size-5 shrink-0" aria-hidden />
@@ -205,7 +195,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                 )}
               </button>
               <div
-                id="tools-nav"
+                id="demo-tools-nav"
                 className="mt-1 space-y-1 border-l border-[var(--sidebar-border)] pl-2 ml-3"
                 hidden={!expanded}
               >
@@ -221,7 +211,10 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                           : 'text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/20 hover:text-[var(--sidebar-foreground)]'
                       )
                     }
-                    onClick={() => { handleNavClick(to); setToolsOpen(true); }}
+                    onClick={() => {
+                      handleNavClick(to);
+                      setToolsOpen(true);
+                    }}
                   >
                     <Icon className="size-5 shrink-0" aria-hidden />
                     <span>{label}</span>
@@ -244,25 +237,13 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
           )}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <PanelLeft className="size-5 shrink-0" aria-hidden /> : <PanelLeftClose className="size-5 shrink-0" aria-hidden />}
+          {isCollapsed ? (
+            <PanelLeft className="size-5 shrink-0" aria-hidden />
+          ) : (
+            <PanelLeftClose className="size-5 shrink-0" aria-hidden />
+          )}
           <NavLabel isCollapsed={isCollapsed}>Collapse</NavLabel>
         </button>
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-2.5 rounded-lg py-2 text-sm font-medium transition-colors',
-              isCollapsed ? 'justify-center px-0' : 'px-3',
-              isActive
-                ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
-                : 'text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/20 hover:text-[var(--sidebar-foreground)]'
-            )
-          }
-          title={isCollapsed ? 'Settings' : undefined}
-        >
-          <Settings className="size-5 shrink-0" aria-hidden />
-          <NavLabel isCollapsed={isCollapsed}>Settings</NavLabel>
-        </NavLink>
       </div>
     </aside>
   );

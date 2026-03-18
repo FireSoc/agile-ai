@@ -188,4 +188,11 @@
   .label-legacy {
     @apply text-sm font-medium leading-none;
   }
+  /* Main content: hide scrollbar, keep scroll behavior */
+  .main-content-scroll {
+    scrollbar-width: none;
+  }
+  .main-content-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }

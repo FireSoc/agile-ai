@@ -50,7 +50,7 @@ export function AppLayout() {
             onToggleSidebar={toggleSidebar}
           />
           <main className="flex min-h-0 flex-1 flex-col overflow-visible bg-background">
-            <div className="min-h-0 flex-1 overflow-y-auto pr-4">
+            <div className="main-content-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-4">
               <ErrorBoundary>
                 <div
                   key={location.pathname}
